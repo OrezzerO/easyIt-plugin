@@ -1,6 +1,6 @@
-package org.jetbrains.plugins.template.services
+package com.github.orezzero.easyitplugin.services
 
-import org.jetbrains.plugins.template.MyBundle
+import com.github.orezzero.easyitplugin.MyBundle
 
 class MyApplicationService {
 
