@@ -11,4 +11,18 @@
         <stubElementTypeHolder class="com.github.orezzero.easyitplugin.stub.CustomMarkdownElementTypes" order="first"/>
         <stubIndex implementation="com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex"/>
     </extensions>
+
+    <actions>
+        <action class="com.github.orezzero.easyitplugin.action.EasyItRecordAction" id="EasyItRecordAction"
+                text="EasyIt Record">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut first-keystroke="meta control C"  keymap="$default"/>
+        </action>
+
+        <action class="com.github.orezzero.easyitplugin.action.EasyItInsertAction" id="EasyItInsertAction"
+                text="EasyIt Insert">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut first-keystroke="meta control V"  keymap="$default"/>
+        </action>
+    </actions>
 </idea-plugin>
