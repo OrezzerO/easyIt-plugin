@@ -8,12 +8,7 @@
     <depends>org.intellij.plugins.markdown</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.orezzero.easyitplugin.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.orezzero.easyitplugin.services.MyProjectService"/>
+        <stubElementTypeHolder class="com.github.orezzero.easyitplugin.stub.CustomMarkdownElementTypes" order="first"/>
+        <stubIndex implementation="com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex"/>
     </extensions>
-
-    <applicationListeners>
-        <listener class="com.github.orezzero.easyitplugin.listeners.MyProjectManagerListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
-    </applicationListeners>
 </idea-plugin>
