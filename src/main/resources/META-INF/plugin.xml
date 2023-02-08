@@ -1,10 +1,11 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.orezzero.easyitplugin</id>
-    <name>IntelliJ Platform Plugin easyIt-plugin</name>
+    <name>EasyIt</name>
     <vendor>orezzero</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>org.intellij.plugins.markdown</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="com.github.orezzero.easyitplugin.services.MyApplicationService"/>
