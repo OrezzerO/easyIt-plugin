@@ -1,4 +1,4 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project

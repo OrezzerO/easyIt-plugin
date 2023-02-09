@@ -1,27 +1,25 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.project.view
 
+import com.github.orezzero.easyitplugin.ui.gutter.GutterLineEasyItRenderer
 import com.intellij.openapi.project.Project
 
 
 class EasyItNodeManagerImpl(val project: Project) : EasyItNodeManager {
 
-    private val nodeMap: MutableMap<EasyItLinkNode, Info> = mutableMapOf()
-
-    //private val infoMap: MutableMap<Info, MutableList<EasyItLinkNode>> = mutableMapOf()
-    private val value2info: MutableMap<Node, Info> = mutableMapOf()
-
-
-    override fun onNodeAdded(node: EasyItNode<*>?) {
+    private val value2info: MutableMap<Value, Info> = mutableMapOf()
+    override fun onNodeAdded(node: EasyItNode<*>) {
         when (node) {
-            is EasyItLinkNode -> onEasyItLinkNodeAdded(node)
+            is EasyItLinkNode -> {
+                onEasyItLinkNodeAdded(node)
+                value2info[node.value]?.refreshRender()
+            }
         }
-        nodeMap[node]?.refreshRender()
     }
-
-    override fun onNodeRemoved(node: EasyItNode<*>?) {
-        node?.let {
-            nodeMap[node]?.removeRender(it)
-            nodeMap.remove(node)
+    override fun onNodeRemoved(node: EasyItNode<*>) {
+        value2info[node.value]?.let {
+            if (it.removeRender(node)) {
+                value2info.remove(node.value)
+            }
         }
     }
 
@@ -29,17 +27,16 @@ class EasyItNodeManagerImpl(val project: Project) : EasyItNodeManager {
     private fun onEasyItLinkNodeAdded(treeNode: EasyItLinkNode) {
         treeNode.value?.let {
             val inMapInfo = value2info.computeIfAbsent(it) { i -> Info(i) }
-            nodeMap[treeNode] = inMapInfo
             inMapInfo.addNode(treeNode)
         }
     }
 
-    inner class Info constructor(node: Node) {
+    inner class Info constructor(value: Value) {
         private val myRenderer: GutterLineEasyItRenderer
         val nodes = mutableSetOf<EasyItLinkNode>()
 
         init {
-            myRenderer = GutterLineEasyItRenderer(this, node)
+            myRenderer = GutterLineEasyItRenderer(this, value)
         }
 
         fun refreshRender() {
@@ -48,12 +45,13 @@ class EasyItNodeManagerImpl(val project: Project) : EasyItNodeManager {
             }
         }
 
-        fun removeRender(easyItNode: EasyItNode<*>) {
+        fun removeRender(easyItNode: EasyItNode<*>): Boolean {
+            nodes.remove(easyItNode)
             if (nodes.isEmpty()) {
                 myRenderer.removeHighlighter()
-            } else {
-                nodes.remove(easyItNode)
+                return true
             }
+            return false
         }
 
         fun addNode(node: EasyItLinkNode) {

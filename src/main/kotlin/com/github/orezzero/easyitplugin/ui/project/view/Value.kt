@@ -1,4 +1,4 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -8,7 +8,7 @@ import org.intellij.plugins.markdown.lang.MarkdownTokenTypes
 import org.intellij.plugins.markdown.lang.psi.impl.MarkdownLinkDestination
 import org.intellij.plugins.markdown.lang.psi.impl.MarkdownLinkText
 
-class Node(val text: MarkdownLinkText, val destination: MarkdownLinkDestination, val file: VirtualFile) {
+class Value(val text: MarkdownLinkText, val destination: MarkdownLinkDestination, val file: VirtualFile) {
 
     var project: Project = text.project
 
@@ -37,14 +37,8 @@ class Node(val text: MarkdownLinkText, val destination: MarkdownLinkDestination,
         for (s in split) {
             val equalPairs = s.split("=")
             when (equalPairs.size) {
-                1 -> {
-                    parseSingleAnchor(s, anchorAttributes)
-                }
-
-                2 -> {
-                    anchorAttributes[equalPairs[0]] = equalPairs[1]
-                }
-
+                1 -> parseSingleAnchor(s, anchorAttributes)
+                2 -> anchorAttributes[equalPairs[0]] = equalPairs[1]
                 else -> {}
             }
         }
@@ -54,7 +48,8 @@ class Node(val text: MarkdownLinkText, val destination: MarkdownLinkDestination,
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Node
+        // todo need to test this statement
+        other as Value
 
         if (file != other.file) return false
         if (project != other.project) return false

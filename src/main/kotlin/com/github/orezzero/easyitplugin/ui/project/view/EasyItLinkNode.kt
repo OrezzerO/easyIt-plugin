@@ -1,11 +1,11 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 
-class EasyItLinkNode(project: Project?, value: Node) : EasyItNode<Node?>(project, value) {
+class EasyItLinkNode(project: Project?, value: Value) : EasyItNode<Value?>(project, value) {
 
     override fun getChildren(): Collection<AbstractTreeNode<*>> {
         return ArrayList()

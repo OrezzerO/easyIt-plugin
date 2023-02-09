@@ -8,7 +8,7 @@
     <depends>org.intellij.plugins.markdown</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectViewPane implementation="com.github.orezzero.easyitplugin.view.EasyItProjectView"/>
+        <projectViewPane implementation="com.github.orezzero.easyitplugin.ui.project.view.EasyItProjectView"/>
         <stubElementTypeHolder class="com.github.orezzero.easyitplugin.stub.CustomMarkdownElementTypes" order="first"/>
         <stubIndex implementation="com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex"/>
 
@@ -16,8 +16,8 @@
                             serviceInterface="org.intellij.plugins.markdown.ui.preview.accessor.MarkdownLinkOpener"
                             serviceImplementation="com.github.orezzero.easyitplugin.md.MarkdownLinkOpenerImpl"/>
 
-        <projectService serviceInterface="com.github.orezzero.easyitplugin.view.EasyItNodeManager"
-                        serviceImplementation="com.github.orezzero.easyitplugin.view.EasyItNodeManagerImpl"/>
+        <projectService serviceInterface="com.github.orezzero.easyitplugin.ui.project.view.EasyItNodeManager"
+                        serviceImplementation="com.github.orezzero.easyitplugin.ui.project.view.EasyItNodeManagerImpl"/>
 
     </extensions>
 

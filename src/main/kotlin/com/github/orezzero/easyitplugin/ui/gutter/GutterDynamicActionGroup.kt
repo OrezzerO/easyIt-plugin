@@ -1,5 +1,8 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.gutter
 
+import com.github.orezzero.easyitplugin.action.EasyItNavigateAction
+import com.github.orezzero.easyitplugin.ui.project.view.EasyItLinkNode
+import com.github.orezzero.easyitplugin.ui.project.view.EasyItNodeManagerImpl
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -11,6 +14,6 @@ class GutterDynamicActionGroup(private val info: EasyItNodeManagerImpl.Info) : A
     }
 
     private fun toAction(node: EasyItLinkNode): AnAction {
-        return EasyItNativeAction(node.value!!)
+        return EasyItNavigateAction(node.value!!)
     }
 }

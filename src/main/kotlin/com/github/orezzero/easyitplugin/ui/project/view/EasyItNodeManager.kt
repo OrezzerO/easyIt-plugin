@@ -1,10 +1,10 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.intellij.openapi.project.Project
 
 interface EasyItNodeManager {
-    fun onNodeAdded(node: EasyItNode<*>?)
-    fun onNodeRemoved(node: EasyItNode<*>?)
+    fun onNodeAdded(node: EasyItNode<*>)
+    fun onNodeRemoved(node: EasyItNode<*>)
 
     companion object {
         fun getInstance(project: Project?): EasyItNodeManager? {

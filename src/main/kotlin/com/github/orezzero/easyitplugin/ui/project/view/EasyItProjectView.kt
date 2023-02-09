@@ -1,4 +1,4 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.intellij.icons.AllIcons
 import com.intellij.ide.SelectInTarget

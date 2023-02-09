@@ -1,4 +1,4 @@
-package com.github.orezzero.easyitplugin.view
+package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex
 import com.github.orezzero.easyitplugin.stub.LinkIndexListener
@@ -55,8 +55,8 @@ class EasyItFileNode : EasyItNode<VirtualFile?> {
             if (isDestMdFile(file)) {
                 children.add(EasyItFileNode(myProject, file!!))
             } else if (text != null && destination != null && file != null) {
-                val node = Node(text, destination, file)
-                val linkNode = EasyItLinkNode(myProject, node)
+                val value = Value(text, destination, file)
+                val linkNode = EasyItLinkNode(myProject, value)
                 children.add(linkNode)
                 EasyItNodeManager.getInstance(myProject)?.onNodeAdded(linkNode)
             }
