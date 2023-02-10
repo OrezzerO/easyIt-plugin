@@ -6,7 +6,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class EasyItNavigateAction(private val value: Value) : AnAction(value.name) {
     override fun actionPerformed(e: AnActionEvent) {
-        val text = value.text
+        val text = value.linkText
         text.navigate(true)
     }
 }

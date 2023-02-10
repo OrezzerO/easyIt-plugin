@@ -6,6 +6,8 @@ interface EasyItNodeManager {
     fun onNodeAdded(node: EasyItNode<*>)
     fun onNodeRemoved(node: EasyItNode<*>)
 
+    fun getValue2Info():  MutableMap<Destination, EasyItNodeManagerImpl.Info>
+
     companion object {
         fun getInstance(project: Project?): EasyItNodeManager? {
             return if (project == null || project.isDisposed) null else project.getService(

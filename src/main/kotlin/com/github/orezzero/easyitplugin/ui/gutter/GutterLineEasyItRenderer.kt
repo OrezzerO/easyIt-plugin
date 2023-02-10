@@ -1,5 +1,6 @@
 package com.github.orezzero.easyitplugin.ui.gutter
 
+import com.github.orezzero.easyitplugin.ui.project.view.Destination
 import com.github.orezzero.easyitplugin.ui.project.view.EasyItNodeManagerImpl
 import com.github.orezzero.easyitplugin.ui.project.view.Value
 import com.intellij.icons.AllIcons
@@ -15,7 +16,7 @@ import com.intellij.ui.AppUIUtil
 import java.lang.ref.WeakReference
 import javax.swing.Icon
 
-data class GutterLineEasyItRenderer(val info: EasyItNodeManagerImpl.Info, var value: Value) : GutterIconRenderer() {
+data class GutterLineEasyItRenderer(val info: EasyItNodeManagerImpl.Info, var destination: Destination) : GutterIconRenderer() {
 
 
     private var reference: WeakReference<RangeHighlighter>? = null
@@ -24,10 +25,10 @@ data class GutterLineEasyItRenderer(val info: EasyItNodeManagerImpl.Info, var va
         get() = HighlighterLayer.ERROR + 1
 
     private val document
-        get() = value.file.let { FileDocumentManager.getInstance().getCachedDocument(it) }
+        get() = destination.file.let { FileDocumentManager.getInstance().getCachedDocument(it) }
 
     private val markup
-        get() = document?.let { DocumentMarkupModel.forDocument(it, value.project, false) as? MarkupModelEx }
+        get() = document?.let { DocumentMarkupModel.forDocument(it, destination.project, true) as? MarkupModelEx }
 
     internal val highlighter
         get() = reference?.get() ?: markup?.allHighlighters?.find { it.gutterIconRenderer == this }
@@ -37,21 +38,20 @@ data class GutterLineEasyItRenderer(val info: EasyItNodeManagerImpl.Info, var va
         return AllIcons.Gutter.Colors
     }
 
-    fun refreshHighlighter() = AppUIUtil.invokeLaterIfProjectAlive(value.project) {
+    fun refreshHighlighter() = AppUIUtil.invokeLaterIfProjectAlive(destination.project) {
         highlighter?.also {
             it.gutterIconRenderer = null
             it.gutterIconRenderer = this
         } ?: createHighlighter()
     }
 
-    fun removeHighlighter() = AppUIUtil.invokeLaterIfProjectAlive(value.project) {
+    fun removeHighlighter() = AppUIUtil.invokeLaterIfProjectAlive(destination.project) {
         highlighter?.dispose()
         reference = null
     }
 
     private fun createHighlighter() {
-        val lineNum = value.anchorAttributes.get("L")?.let { Integer.valueOf(it) - 1 } ?: 0
-        reference = markup?.addPersistentLineHighlighter(CodeInsightColors.BOOKMARKS_ATTRIBUTES, lineNum, layer)?.let {
+        reference = markup?.addPersistentLineHighlighter(CodeInsightColors.BOOKMARKS_ATTRIBUTES, destination.line, layer)?.let {
             it.gutterIconRenderer = this
             it.errorStripeTooltip = tooltipText
             WeakReference(it)

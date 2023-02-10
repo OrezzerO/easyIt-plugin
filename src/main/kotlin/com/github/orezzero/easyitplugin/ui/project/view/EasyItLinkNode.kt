@@ -26,7 +26,7 @@ class EasyItLinkNode(project: Project?, value: Value) : EasyItNode<Value?>(proje
 
     override fun navigate(requestFocus: Boolean) {
         value?.also {
-            it.descriptor.navigate(true)
+            it.destination.descriptor.navigate(true)
         }
     }
 
