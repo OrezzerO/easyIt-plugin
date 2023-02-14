@@ -1,8 +1,10 @@
 package com.github.orezzero.easyitplugin.ui.project.view
 
+
+import com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex
 import com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex
 import com.github.orezzero.easyitplugin.stub.LinkIndexListener
-import com.github.orezzero.easyitplugin.stub.MarkdownInlineLink
+import com.github.orezzero.easyitplugin.util.FileUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
@@ -15,16 +17,13 @@ import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.stubs.StubIndex
 import com.intellij.util.Alarm
-import com.intellij.util.CommonProcessors.CollectProcessor
-
-
-import org.intellij.plugins.markdown.lang.psi.impl.MarkdownLinkDestination
+import com.intellij.util.indexing.FileBasedIndex
 import java.util.*
 import javax.swing.SwingUtilities
+import kotlin.streams.toList
 
-class EasyItFileNode : EasyItNode<VirtualFile?> {
+class EasyItFileNode : EasyItNode<VirtualFile> {
 
     var oldChildren: Collection<AbstractTreeNode<*>?> = emptyList()
 
@@ -35,30 +34,32 @@ class EasyItFileNode : EasyItNode<VirtualFile?> {
         }
     }
 
+    override fun getVirtualFile(): VirtualFile {
+        return value!!
+    }
+
     override fun getChildren(): Collection<AbstractTreeNode<*>?> {
-        val list: List<MarkdownInlineLink> = ArrayList()
-        StubIndex.getInstance().processAllKeys(InlineLinkTextIndex.KEY, myProject) { t: String ->
-            StubIndex.getInstance()
-                .processElements(
-                    InlineLinkTextIndex.KEY, t, myProject, GlobalSearchScope.fileScope(myProject, value),
-                    MarkdownInlineLink::class.java,
-                    CollectProcessor(list)
-                )
-            true
-        }
+//        val list: List<MarkdownInlineLink> = ArrayList()
         val children: MutableList<AbstractTreeNode<*>?> = mutableListOf()
 
-        for (link in list) {
-            val text = link.linkText
-            val destination = link.linkDestination
-            val file = findVirtualFile(destination)
+        var values = FileBasedIndex.getInstance().getValues(
+            MarkdownLinkIndex.NAME, FileUtils.getRelativePathBaseOnProject(project, value!!),
+            GlobalSearchScope.fileScope(project, virtualFile)
+        )
+        var flatValues = values.stream().flatMap { value -> value.stream() }.toList()
+
+
+
+        for (value in flatValues) {
+            val file = findVirtualFile(value.dest)
             if (isDestMdFile(file)) {
                 children.add(EasyItFileNode(myProject, file!!))
-            } else if (text != null && destination != null && file != null) {
-                val value = Value(text, destination, file)
-                val linkNode = EasyItLinkNode(myProject, value)
-                children.add(linkNode)
-                EasyItNodeManager.getInstance(myProject)?.onNodeAdded(linkNode)
+            } else if (file != null) {
+                Dest.of(project, virtualFile, value)?.let {
+                    val linkNode = EasyItLinkNode(myProject, it)
+                    children.add(linkNode)
+                    EasyItNodeManager.getInstance(myProject)?.onNodeAdded(linkNode)
+                }
             }
         }
         for (ele in oldChildren) {
@@ -69,8 +70,8 @@ class EasyItFileNode : EasyItNode<VirtualFile?> {
         return children
     }
 
-    private fun findVirtualFile(destination: MarkdownLinkDestination?): VirtualFile? {
-        return destination?.text?.let { value?.parent?.findFileByRelativePath(it.substringBefore("#")) }
+    private fun findVirtualFile(text: String): VirtualFile? {
+        return FileUtils.findFileByRelativePath(virtualFile, text.substringBefore("#"))
     }
 
     private fun isDestMdFile(file: VirtualFile?): Boolean {

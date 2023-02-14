@@ -1,8 +1,7 @@
 package com.github.orezzero.easyitplugin.ui.gutter
 
-import com.github.orezzero.easyitplugin.ui.project.view.Destination
+import com.github.orezzero.easyitplugin.ui.project.view.Dest
 import com.github.orezzero.easyitplugin.ui.project.view.EasyItNodeManagerImpl
-import com.github.orezzero.easyitplugin.ui.project.view.Value
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.editor.colors.CodeInsightColors
@@ -16,7 +15,8 @@ import com.intellij.ui.AppUIUtil
 import java.lang.ref.WeakReference
 import javax.swing.Icon
 
-data class GutterLineEasyItRenderer(val info: EasyItNodeManagerImpl.Info, var destination: Destination) : GutterIconRenderer() {
+data class GutterLineEasyItRenderer(val info: EasyItNodeManagerImpl.Info, var destination: Dest) :
+    GutterIconRenderer() {
 
 
     private var reference: WeakReference<RangeHighlighter>? = null
@@ -51,11 +51,12 @@ data class GutterLineEasyItRenderer(val info: EasyItNodeManagerImpl.Info, var de
     }
 
     private fun createHighlighter() {
-        reference = markup?.addPersistentLineHighlighter(CodeInsightColors.BOOKMARKS_ATTRIBUTES, destination.line, layer)?.let {
-            it.gutterIconRenderer = this
-            it.errorStripeTooltip = tooltipText
-            WeakReference(it)
-        }
+        reference =
+            markup?.addPersistentLineHighlighter(CodeInsightColors.BOOKMARKS_ATTRIBUTES, destination.line, layer)?.let {
+                it.gutterIconRenderer = this
+                it.errorStripeTooltip = tooltipText
+                WeakReference(it)
+            }
     }
 
 

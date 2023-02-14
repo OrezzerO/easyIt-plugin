@@ -5,14 +5,13 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.indexing.*
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
+import com.intellij.util.io.IOUtil
 import com.intellij.util.io.KeyDescriptor
-import com.intellij.util.io.VoidDataExternalizer
 import org.intellij.plugins.markdown.lang.MarkdownFileType
-import org.intellij.plugins.markdown.lang.psi.MarkdownRecursiveElementVisitor
-import org.intellij.plugins.markdown.lang.psi.impl.MarkdownLinkDestination
+import java.io.DataInput
+import java.io.DataOutput
 
-class MarkdownLinkIndex : FileBasedIndexExtension<String, Void>() {
-
+class MarkdownLinkIndex : FileBasedIndexExtension<String, List<KeyValue>>() {
 
     init {
         ApplicationManager.getApplication().messageBus.connect()
@@ -21,32 +20,38 @@ class MarkdownLinkIndex : FileBasedIndexExtension<String, Void>() {
             })
     }
 
-    override fun getName(): ID<String, Void> {
+    override fun getName(): ID<String, List<KeyValue>> {
         return NAME
     }
 
-    override fun getIndexer(): DataIndexer<String, Void, FileContent> {
-        return DataIndexer<String, Void, FileContent> { inputData ->
-            val psiFile = inputData.psiFile
-            val map: Map<String, Void> = HashMap()
-            println(inputData.psiFile.name)
-            psiFile.accept(object : MarkdownRecursiveElementVisitor() {
-                override fun visitLinkDestination(linkDestination: MarkdownLinkDestination) {
-                    linkDestination.parent
-                    println(linkDestination.text)
-                }
-            })
-            map
-        }
+    override fun getIndexer(): DataIndexer<String, List<KeyValue>, FileContent> {
+        return MarkdownDataIndexer()
     }
 
     override fun getKeyDescriptor(): KeyDescriptor<String> {
         return EnumeratorStringDescriptor.INSTANCE
     }
 
-    override fun getValueExternalizer(): DataExternalizer<Void> {
-        // todo add generic type
-        return VoidDataExternalizer.INSTANCE
+    override fun getValueExternalizer(): DataExternalizer<List<KeyValue>> {
+        return object : DataExternalizer<List<KeyValue>> {
+            override fun save(out: DataOutput, values: List<KeyValue>?) {
+                out.writeInt(values!!.size)
+                for (value in values) {
+                    IOUtil.writeUTF(out, value.name)
+                    IOUtil.writeUTF(out, value.dest)
+                }
+            }
+
+            override fun read(input: DataInput): List<KeyValue> {
+                val size = input.readInt()
+                val infos = ArrayList<KeyValue>(size)
+                for (i in 0 until size) {
+                    infos.add(KeyValue(IOUtil.readUTF(input), IOUtil.readUTF(input)))
+                }
+                return infos
+            }
+
+        }
     }
 
     override fun getVersion(): Int {
@@ -62,6 +67,6 @@ class MarkdownLinkIndex : FileBasedIndexExtension<String, Void>() {
     }
 
     companion object {
-        val NAME = ID.create<String?, Void?>("MarkdownLink")
+        val NAME = ID.create<String?, List<KeyValue>?>("MarkdownLink")
     }
 }

@@ -5,15 +5,14 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 
-class EasyItLinkNode(project: Project?, value: Value) : EasyItNode<Value?>(project, value) {
-
+class EasyItLinkNode(project: Project, val dest: Dest) : EasyItNode<Dest>(project, dest) {
     override fun getChildren(): Collection<AbstractTreeNode<*>> {
         return ArrayList()
     }
 
     override fun update(presentation: PresentationData) {
         presentation.setIcon(AllIcons.Nodes.Method)
-        presentation.presentableText = value!!.name
+        presentation.presentableText = dest.name
     }
 
     override fun canNavigate(): Boolean {
@@ -26,7 +25,7 @@ class EasyItLinkNode(project: Project?, value: Value) : EasyItNode<Value?>(proje
 
     override fun navigate(requestFocus: Boolean) {
         value?.also {
-            it.destination.descriptor.navigate(true)
+            it.descriptor.navigate(true)
         }
     }
 

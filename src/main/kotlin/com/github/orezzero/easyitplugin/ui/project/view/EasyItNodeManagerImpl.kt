@@ -1,6 +1,5 @@
 package com.github.orezzero.easyitplugin.ui.project.view
 
-import com.github.orezzero.easyitplugin.editor.EasyItDocChangeListener
 import com.github.orezzero.easyitplugin.ui.gutter.GutterLineEasyItRenderer
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
@@ -14,12 +13,12 @@ class EasyItNodeManagerImpl(val project: Project) : EasyItNodeManager {
 //        multicaster.addDocumentListener(EasyItDocChangeListener(project), project)
     }
 
-    private val value2info: MutableMap<Destination, Info> = mutableMapOf()
+    private val value2info: MutableMap<Dest, Info> = mutableMapOf()
     override fun onNodeAdded(node: EasyItNode<*>) {
         when (node) {
             is EasyItLinkNode -> {
                 onEasyItLinkNodeAdded(node)
-                value2info[node.value?.destination]?.refreshRender()
+                value2info[node.value]?.refreshRender()
             }
         }
     }
@@ -32,25 +31,25 @@ class EasyItNodeManagerImpl(val project: Project) : EasyItNodeManager {
         }
     }
 
-    override fun getValue2Info(): MutableMap<Destination, Info> {
+    override fun getValue2Info(): MutableMap<Dest, Info> {
         return Collections.unmodifiableMap(value2info)
 
     }
 
 
     private fun onEasyItLinkNodeAdded(treeNode: EasyItLinkNode) {
-        treeNode.value?.destination?.let {
+        treeNode.value?.let {
             val inMapInfo = value2info.computeIfAbsent(it) { i -> Info(i) }
             inMapInfo.addNode(treeNode)
         }
     }
 
-    inner class Info constructor(destination: Destination) {
+    inner class Info constructor(dest: Dest) {
         val myRenderer: GutterLineEasyItRenderer
         val nodes = mutableSetOf<EasyItLinkNode>()
 
         init {
-            myRenderer = GutterLineEasyItRenderer(this, destination)
+            myRenderer = GutterLineEasyItRenderer(this, dest)
         }
 
         fun refreshRender() {
