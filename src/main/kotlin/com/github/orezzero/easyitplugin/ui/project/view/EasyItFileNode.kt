@@ -5,6 +5,7 @@ import com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex
 import com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex
 import com.github.orezzero.easyitplugin.stub.LinkIndexListener
 import com.github.orezzero.easyitplugin.util.FileUtils
+import com.github.orezzero.easyitplugin.util.LocationUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
@@ -16,12 +17,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.psi.PsiManager
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.Alarm
 import com.intellij.util.indexing.FileBasedIndex
 import java.util.*
 import javax.swing.SwingUtilities
-import kotlin.streams.toList
 
 class EasyItFileNode : EasyItNode<VirtualFile> {
 
@@ -42,29 +41,20 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
 //        val list: List<MarkdownInlineLink> = ArrayList()
         val children: MutableList<AbstractTreeNode<*>?> = mutableListOf()
 
-        var values = FileBasedIndex.getInstance().getValues(
-            MarkdownLinkIndex.NAME, FileUtils.getRelativePathBaseOnProject(project, value!!),
-            GlobalSearchScope.fileScope(project, virtualFile)
-        )
-        var flatValues = values.stream().flatMap { value -> value.stream() }.toList()
+        var fileData = FileBasedIndex.getInstance().getFileData(MarkdownLinkIndex.NAME, virtualFile, project)
+        val mdEntries = fileData.keys
 
-
-
-        for (value in flatValues) {
-            val file = findVirtualFile(value.dest)
+        for (value in mdEntries) {
+            val file = findVirtualFile(value.location)
             if (isDestMdFile(file)) {
                 children.add(EasyItFileNode(myProject, file!!))
             } else if (file != null) {
-                Dest.of(project, virtualFile, value)?.let {
+
+                LocationUtils.toDest(project, virtualFile, value)?.let {
                     val linkNode = EasyItLinkNode(myProject, it)
                     children.add(linkNode)
-                    EasyItNodeManager.getInstance(myProject)?.onNodeAdded(linkNode)
                 }
             }
-        }
-        for (ele in oldChildren) {
-            val easyItNode = ele as? EasyItLinkNode
-            easyItNode?.let { EasyItNodeManager.getInstance(myProject)?.onNodeRemoved(it) }
         }
         oldChildren = children
         return children

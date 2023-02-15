@@ -12,7 +12,7 @@ object FileUtils {
     }
 
     @JvmStatic
-    fun getRelativePathBaseOnProject(project: Project, dest: VirtualFile): String {
+    fun getRelativePath(project: Project, dest: VirtualFile): String {
         val projectDir = project.guessProjectDir()!!
         return getRelativePath(projectDir, dest)
     }

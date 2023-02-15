@@ -7,18 +7,18 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>org.intellij.plugins.markdown</depends>
 
+
     <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.github.orezzero.easyitplugin.ui.gutter.EasyItGutterListener"/>
         <fileBasedIndex implementation="com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex"/>
         <projectViewPane implementation="com.github.orezzero.easyitplugin.ui.project.view.EasyItProjectView"/>
-<!--        <stubElementTypeHolder class="com.github.orezzero.easyitplugin.stub.CustomMarkdownElementTypes" order="first"/>-->
-<!--        <stubIndex implementation="com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex"/>-->
 
         <applicationService overrides="true"
                             serviceInterface="org.intellij.plugins.markdown.ui.preview.accessor.MarkdownLinkOpener"
                             serviceImplementation="com.github.orezzero.easyitplugin.md.MarkdownLinkOpenerImpl"/>
 
-        <projectService serviceInterface="com.github.orezzero.easyitplugin.ui.project.view.EasyItNodeManager"
-                        serviceImplementation="com.github.orezzero.easyitplugin.ui.project.view.EasyItNodeManagerImpl"/>
+        <projectService serviceInterface="com.github.orezzero.easyitplugin.index.file.EasyItManager"
+                        serviceImplementation="com.github.orezzero.easyitplugin.index.file.EasyItManagerImpl"/>
 
     </extensions>
 

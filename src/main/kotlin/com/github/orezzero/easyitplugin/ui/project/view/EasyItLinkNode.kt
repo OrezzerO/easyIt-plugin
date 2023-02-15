@@ -1,5 +1,6 @@
 package com.github.orezzero.easyitplugin.ui.project.view
 
+import com.github.orezzero.easyitplugin.index.file.entry.Dest
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode

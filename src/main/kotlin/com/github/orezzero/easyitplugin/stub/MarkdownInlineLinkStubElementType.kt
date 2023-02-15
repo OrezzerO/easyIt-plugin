@@ -60,7 +60,7 @@ class MarkdownInlineLinkStubElementType(debugName: String) :
 
         @Throws(IOException::class)
         private fun writeUTFFast(dataStream: StubOutputStream, text: String?) {
-            dataStream.writeUTFFast(text?:"")
+            dataStream.writeUTFFast(text ?: "")
         }
     }
 }

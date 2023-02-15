@@ -1,17 +1,14 @@
 package com.github.orezzero.easyitplugin.index.file
 
+import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.indexing.*
 import com.intellij.util.io.DataExternalizer
-import com.intellij.util.io.EnumeratorStringDescriptor
-import com.intellij.util.io.IOUtil
 import com.intellij.util.io.KeyDescriptor
 import org.intellij.plugins.markdown.lang.MarkdownFileType
-import java.io.DataInput
-import java.io.DataOutput
 
-class MarkdownLinkIndex : FileBasedIndexExtension<String, List<KeyValue>>() {
+class MarkdownLinkIndex : FileBasedIndexExtension<IndexEntry, IndexEntry>() {
 
     init {
         ApplicationManager.getApplication().messageBus.connect()
@@ -20,42 +17,24 @@ class MarkdownLinkIndex : FileBasedIndexExtension<String, List<KeyValue>>() {
             })
     }
 
-    override fun getName(): ID<String, List<KeyValue>> {
+    override fun getName(): ID<IndexEntry, IndexEntry> {
         return NAME
     }
 
-    override fun getIndexer(): DataIndexer<String, List<KeyValue>, FileContent> {
+    override fun getIndexer(): DataIndexer<IndexEntry, IndexEntry, FileContent> {
         return MarkdownDataIndexer()
     }
 
-    override fun getKeyDescriptor(): KeyDescriptor<String> {
-        return EnumeratorStringDescriptor.INSTANCE
+    override fun getKeyDescriptor(): KeyDescriptor<IndexEntry> {
+        return IndexEntry.KEY_DESCRIPTOR_INSTANCE
     }
 
-    override fun getValueExternalizer(): DataExternalizer<List<KeyValue>> {
-        return object : DataExternalizer<List<KeyValue>> {
-            override fun save(out: DataOutput, values: List<KeyValue>?) {
-                out.writeInt(values!!.size)
-                for (value in values) {
-                    IOUtil.writeUTF(out, value.name)
-                    IOUtil.writeUTF(out, value.dest)
-                }
-            }
-
-            override fun read(input: DataInput): List<KeyValue> {
-                val size = input.readInt()
-                val infos = ArrayList<KeyValue>(size)
-                for (i in 0 until size) {
-                    infos.add(KeyValue(IOUtil.readUTF(input), IOUtil.readUTF(input)))
-                }
-                return infos
-            }
-
-        }
+    override fun getValueExternalizer(): DataExternalizer<IndexEntry> {
+        return IndexEntry.DATA_EXTERNALIZER_INSTANCE
     }
 
     override fun getVersion(): Int {
-        return 1
+        return 3
     }
 
     override fun getInputFilter(): FileBasedIndex.InputFilter {
@@ -67,6 +46,6 @@ class MarkdownLinkIndex : FileBasedIndexExtension<String, List<KeyValue>>() {
     }
 
     companion object {
-        val NAME = ID.create<String?, List<KeyValue>?>("MarkdownLink")
+        val NAME = ID.create<IndexEntry, IndexEntry>("MarkdownLink")
     }
 }
