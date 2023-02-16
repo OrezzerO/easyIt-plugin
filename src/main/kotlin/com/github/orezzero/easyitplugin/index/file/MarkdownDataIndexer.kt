@@ -37,8 +37,10 @@ class MarkdownDataIndexer : DataIndexer<IndexEntry, IndexEntry, FileContent> {
                         // calculate src (md file)
                         val lineNum =
                             FileDocumentManager.getInstance().getDocument(mdFile)?.getLineNumber(parent.startOffset)
-                                ?: 0
-                        val linkLocation = IndexEntry.of(name, project, mdFile, lineNum)
+                                ?.let { line ->
+                                    line + 1
+                                } ?: 0
+                        val linkLocation = IndexEntry.of(name, project, mdFile, lineNum + 1)
                         result[linkLocation] = codeLocation
                         IndexListenerDispatcher.getInstance(project)?.indexChanged()
                     }
