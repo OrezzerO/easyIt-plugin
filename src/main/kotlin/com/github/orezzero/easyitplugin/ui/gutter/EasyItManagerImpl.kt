@@ -1,17 +1,61 @@
-package com.github.orezzero.easyitplugin.index.file
+package com.github.orezzero.easyitplugin.ui.gutter
 
+import com.github.orezzero.easyitplugin.index.file.IndexListenerDispatcher
+import com.github.orezzero.easyitplugin.index.file.LinkIndexListener
+import com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
-import com.github.orezzero.easyitplugin.ui.gutter.GutterLineEasyItRenderer
+import com.github.orezzero.easyitplugin.runReadAction
 import com.github.orezzero.easyitplugin.util.LocationUtils
+
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.indexing.FileBasedIndex
 import java.util.concurrent.ConcurrentHashMap
 
 
 class EasyItManagerImpl(val project: Project) : EasyItManager {
+    init {
+        val manager = this
+        IndexListenerDispatcher.getInstance(project)?.let {
+            it.addListener(object : LinkIndexListener {
+                init {
+                    val me: LinkIndexListener = this
+                    Disposer.register(
+                        project
+                    ) {
+                        it.removeListener(me)
+                    }
+                }
+
+                override fun indexChanged() {
+                    manager.refresh()
+                }
+            })
+        }
+    }
 
     private val location2Renderer: MutableMap<SimpleLocation, Render> = ConcurrentHashMap()
+    fun refresh() {
+        // clear old index
+        for (value in location2Renderer.values) {
+            value.quickRemove()
+        }
+        location2Renderer.clear()
+
+        // put new index
+        val instance = FileBasedIndex.getInstance()
+        val allKeys = runReadAction { instance.getAllKeys(MarkdownLinkIndex.NAME, project) }
+        for (key in allKeys) {
+            val values =
+                runReadAction { instance.getValues(MarkdownLinkIndex.NAME, key, GlobalSearchScope.allScope(project)) }
+            for (value in values) {
+                EasyItManager.getInstance(project)?.onIndexAdd(key, value)
+            }
+        }
+    }
 
     override fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry) {
         val simpleCodeLocation = LocationUtils.toSimpleLocation(codeLocation)
@@ -49,6 +93,12 @@ class EasyItManagerImpl(val project: Project) : EasyItManager {
                 return true
             }
             return false
+        }
+
+        fun quickRemove(): Boolean {
+            linkLocations.clear()
+            myRenderer.removeHighlighter()
+            return true
         }
 
 

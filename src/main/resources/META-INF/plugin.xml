@@ -17,8 +17,10 @@
                             serviceInterface="org.intellij.plugins.markdown.ui.preview.accessor.MarkdownLinkOpener"
                             serviceImplementation="com.github.orezzero.easyitplugin.md.MarkdownLinkOpenerImpl"/>
 
-        <projectService serviceInterface="com.github.orezzero.easyitplugin.index.file.EasyItManager"
-                        serviceImplementation="com.github.orezzero.easyitplugin.index.file.EasyItManagerImpl"/>
+        <projectService serviceInterface="com.github.orezzero.easyitplugin.ui.gutter.EasyItManager"
+                        serviceImplementation="com.github.orezzero.easyitplugin.ui.gutter.EasyItManagerImpl"/>
+        <projectService serviceImplementation="com.github.orezzero.easyitplugin.index.file.IndexListenerDispatcher"/>
+
 
     </extensions>
 

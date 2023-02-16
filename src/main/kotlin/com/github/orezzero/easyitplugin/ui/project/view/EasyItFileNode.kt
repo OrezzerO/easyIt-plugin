@@ -1,9 +1,9 @@
 package com.github.orezzero.easyitplugin.ui.project.view
 
 
+import com.github.orezzero.easyitplugin.index.file.IndexListenerDispatcher
+import com.github.orezzero.easyitplugin.index.file.LinkIndexListener
 import com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex
-import com.github.orezzero.easyitplugin.stub.InlineLinkTextIndex
-import com.github.orezzero.easyitplugin.stub.LinkIndexListener
 import com.github.orezzero.easyitplugin.util.FileUtils
 import com.github.orezzero.easyitplugin.util.LocationUtils
 import com.intellij.icons.AllIcons
@@ -42,14 +42,13 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
         val children: MutableList<AbstractTreeNode<*>?> = mutableListOf()
 
         var fileData = FileBasedIndex.getInstance().getFileData(MarkdownLinkIndex.NAME, virtualFile, project)
-        val mdEntries = fileData.keys
+        val mdEntries = fileData.values
 
         for (value in mdEntries) {
             val file = findVirtualFile(value.location)
-            if (isDestMdFile(file)) {
+            if (file != virtualFile && isDestMdFile(file)) {
                 children.add(EasyItFileNode(myProject, file!!))
             } else if (file != null) {
-
                 LocationUtils.toDest(project, virtualFile, value)?.let {
                     val linkNode = EasyItLinkNode(myProject, it)
                     children.add(linkNode)
@@ -136,28 +135,30 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
             }
         })
 
-        InlineLinkTextIndex.addLinkFileListener(object : LinkIndexListener {
-            init {
-                val me: LinkIndexListener = this
-                Disposer.register(
-                    project
-                ) {
-                    InlineLinkTextIndex.removeLinkIndexListener(me)
-                }
-            }
-
-            override fun indexChanged(`object`: Any?) {
-                // md file changes
-                alarm.cancelAllRequests()
-                alarm.addRequest({
-                    SwingUtilities.invokeLater {
-                        ProjectView.getInstance(myProject)
-                            .getProjectViewPaneById(EasyItProjectView.ID)
-                            .updateFromRoot(true) // todo 这里可以选择不 从 root 更新, 而是从某个节点更新, 可优化
+        IndexListenerDispatcher.getInstance(project)?.let {
+            it.addListener(object : LinkIndexListener {
+                init {
+                    val me: LinkIndexListener = this
+                    Disposer.register(
+                        project
+                    ) {
+                        it.removeListener(me)
                     }
-                }, 1000)
+                }
 
-            }
-        })
+                override fun indexChanged() {
+                    // md file changes
+                    alarm.cancelAllRequests()
+                    alarm.addRequest({
+                        SwingUtilities.invokeLater {
+                            ProjectView.getInstance(myProject)
+                                .getProjectViewPaneById(EasyItProjectView.ID)
+                                .updateFromRoot(true) // todo 这里可以选择不 从 root 更新, 而是从某个节点更新, 可优化
+                        }
+                    }, 1000)
+                }
+            })
+
+        }
     }
 }

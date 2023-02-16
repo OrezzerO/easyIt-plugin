@@ -1,7 +1,6 @@
 package com.github.orezzero.easyitplugin.ui.gutter
 
 import com.github.orezzero.easyitplugin.action.EasyItNavigateAction
-import com.github.orezzero.easyitplugin.index.file.EasyItManagerImpl
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction

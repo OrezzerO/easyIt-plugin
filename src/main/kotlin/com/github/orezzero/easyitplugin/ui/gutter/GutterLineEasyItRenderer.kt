@@ -1,6 +1,5 @@
 package com.github.orezzero.easyitplugin.ui.gutter
 
-import com.github.orezzero.easyitplugin.index.file.EasyItManagerImpl
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.editor.colors.CodeInsightColors

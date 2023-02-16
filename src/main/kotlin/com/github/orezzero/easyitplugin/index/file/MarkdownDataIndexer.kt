@@ -40,7 +40,7 @@ class MarkdownDataIndexer : DataIndexer<IndexEntry, IndexEntry, FileContent> {
                                 ?: 0
                         val linkLocation = IndexEntry.of(name, project, mdFile, lineNum)
                         result[linkLocation] = codeLocation
-                        EasyItManager.getInstance(project)?.onIndexAdd(linkLocation, codeLocation)
+                        IndexListenerDispatcher.getInstance(project)?.indexChanged()
                     }
 
 

@@ -1,4 +1,4 @@
-package com.github.orezzero.easyitplugin.index.file
+package com.github.orezzero.easyitplugin.ui.gutter
 
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.intellij.openapi.project.Project
