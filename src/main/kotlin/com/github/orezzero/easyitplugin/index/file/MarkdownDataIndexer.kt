@@ -4,6 +4,7 @@ import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.util.FileUtils
 import com.github.orezzero.easyitplugin.util.MarkdownElementUtils
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.FileContent
@@ -27,11 +28,13 @@ class MarkdownDataIndexer : DataIndexer<IndexEntry, IndexEntry, FileContent> {
                     val name = parent.linkText?.let {
                         MarkdownElementUtils.getLinkTextString(it)
                     } ?: ""
-                    FileUtils.findFileByRelativePath(mdFile, linkDest.substringBefore("#"))?.let {
+                    FileUtils.findFileByRelativePath(mdFile, linkDest)?.let {
                         // calculate dest (code file)
                         val codeLocation = IndexEntry(
                             name,
-                            FileUtils.getRelativePath(project, it) + "#" + linkDest.substringAfter("#")
+                            FileUtils.getRelativePath(project, it) + "#" + linkDest.substringAfter("#"),
+                            0,
+                            0
                         )
 
                         // calculate src (md file)
@@ -40,7 +43,14 @@ class MarkdownDataIndexer : DataIndexer<IndexEntry, IndexEntry, FileContent> {
                                 ?.let { line ->
                                     line + 1
                                 } ?: 0
-                        val linkLocation = IndexEntry.of(name, project, mdFile, lineNum + 1)
+                        val linkLocation = IndexEntry.of(
+                            name,
+                            project,
+                            mdFile,
+                            lineNum + 1,
+                            linkDestination.startOffset,
+                            linkDestination.endOffset
+                        )
                         result[linkLocation] = codeLocation
                         IndexListenerDispatcher.getInstance(project)?.indexChanged()
                     }

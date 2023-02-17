@@ -9,10 +9,10 @@ import com.intellij.openapi.project.guessProjectDir
 
 class EasyItNavigateAction(val entry: IndexEntry) : AnAction(entry.name) {
     override fun actionPerformed(e: AnActionEvent) {
-        var toSimpleLocation = LocationUtils.toSimpleLocation(entry)
-        var file = e.project?.let {
+        val toSimpleLocation = LocationUtils.toSimpleLocation(entry)
+        e.project?.let {
             it.guessProjectDir()?.findFileByRelativePath(toSimpleLocation.path)?.let { f ->
-                var openFileDescriptor = OpenFileDescriptor(it, f, toSimpleLocation.line, 0)
+                val openFileDescriptor = OpenFileDescriptor(it, f, toSimpleLocation.line, 0)
                 openFileDescriptor.navigate(true)
             }
         }

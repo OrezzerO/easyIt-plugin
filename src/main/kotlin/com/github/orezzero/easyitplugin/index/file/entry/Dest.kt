@@ -33,8 +33,5 @@ data class Dest(
         }
         return list.joinToString("&")
     }
-
-    companion object
-
 }
 

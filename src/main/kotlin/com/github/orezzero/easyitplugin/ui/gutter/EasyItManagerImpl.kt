@@ -6,6 +6,7 @@ import com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
 import com.github.orezzero.easyitplugin.runReadAction
+import com.github.orezzero.easyitplugin.util.FileUtils
 import com.github.orezzero.easyitplugin.util.LocationUtils
 
 import com.intellij.openapi.project.Project
@@ -57,10 +58,14 @@ class EasyItManagerImpl(val project: Project) : EasyItManager {
         }
     }
 
+    override fun getLocation2Render(): Map<SimpleLocation, Render> {
+        return location2Renderer
+    }
+
     override fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry) {
         val simpleCodeLocation = LocationUtils.toSimpleLocation(codeLocation)
 
-        val file = LocationUtils.getFile(project, simpleCodeLocation.path)
+        val file = FileUtils.findFileByRelativePath(project, simpleCodeLocation.path)
         file?.let {
             val render = location2Renderer.computeIfAbsent(simpleCodeLocation) { l -> Render(l, project, file) }
             render.addLinkLocation(linkLocation)

@@ -1,11 +1,13 @@
 package com.github.orezzero.easyitplugin.ui.gutter
 
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
+import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
 import com.intellij.openapi.project.Project
 
 interface EasyItManager {
     fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry)
     fun onIndexUpdate(md: IndexEntry, code: IndexEntry)
+    fun getLocation2Render(): Map<SimpleLocation, EasyItManagerImpl.Render>
 
     companion object {
         fun getInstance(project: Project?): EasyItManager? {

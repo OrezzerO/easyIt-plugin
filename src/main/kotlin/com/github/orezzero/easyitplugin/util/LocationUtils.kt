@@ -5,8 +5,6 @@ import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.vfs.VirtualFile
 
 class LocationUtils {
 
@@ -25,22 +23,15 @@ class LocationUtils {
             return anchorAttributes["L"]?.let { Integer.valueOf(it) - 1 } ?: 0
         }
 
-        fun toDest(project: Project, base: VirtualFile, kv: IndexEntry): Dest? {
-            val file = FileUtils.findFileByRelativePath(base, kv.location.substringBefore("#"))
-            return file?.let {
+        fun toDest(project: Project, kv: IndexEntry): Dest {
+            val file = FileUtils.findFileByRelativePath(project, kv.location.substringBefore("#"))!!
+            return file.let {
                 val anchorAttributes = parseAnchor(kv.location.substringAfter("#"))
                 val line = getLineNum(anchorAttributes)
                 val descriptor = OpenFileDescriptor(project, file, line, 0)
                 Dest(kv.name, project, file, line, anchorAttributes, descriptor)
             }
         }
-
-        fun toDest(project: Project, kv: IndexEntry): Dest? {
-            return project.guessProjectDir()?.findFileByRelativePath(kv.location)?.let {
-                toDest(project, it, kv)
-            }
-        }
-
 
         private fun parseAnchor(anchor: String): Map<String, String> {
             val anchorAttributes = mutableMapOf<String, String>()
@@ -69,12 +60,6 @@ class LocationUtils {
                 anchorAttributes[s.substring(0, lastLetter + 1)] = s.substring(lastLetter + 1)
             }
         }
-
-        fun getFile(project: Project, relativePath: String): VirtualFile? {
-            return project.guessProjectDir()?.findFileByRelativePath(relativePath)
-        }
-
-
     }
 
 }

@@ -49,7 +49,7 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
             if (file != virtualFile && isDestMdFile(file)) {
                 children.add(EasyItFileNode(myProject, file!!))
             } else if (file != null) {
-                LocationUtils.toDest(project, virtualFile, value)?.let {
+                LocationUtils.toDest(project, value)?.let {
                     val linkNode = EasyItLinkNode(myProject, it)
                     children.add(linkNode)
                 }

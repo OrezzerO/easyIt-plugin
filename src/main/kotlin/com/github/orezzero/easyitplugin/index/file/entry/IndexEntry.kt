@@ -8,15 +8,23 @@ import com.intellij.util.io.KeyDescriptor
 import java.io.DataInput
 import java.io.DataOutput
 
-data class IndexEntry(val name: String, val location: String) {
+data class IndexEntry(val name: String, val location: String, var startOffset: Int, var endOffset: Int) {
+
     companion object {
         val DATA_EXTERNALIZER_INSTANCE = LocationDataExternalizer()
         val KEY_DESCRIPTOR_INSTANCE = LocationKeyDescriptor()
-        fun of(name: String, project: Project, virtualFile: VirtualFile, lineNum: Int): IndexEntry {
+        fun of(
+            name: String,
+            project: Project,
+            virtualFile: VirtualFile,
+            lineNum: Int,
+            startOffset: Int,
+            endOffset: Int
+        ): IndexEntry {
             val lineStr = "L$lineNum"
             val relativePath = FileUtils.getRelativePath(project, virtualFile)
             val location = "$relativePath#$lineStr"
-            return IndexEntry(name, location)
+            return IndexEntry(name, location, startOffset, endOffset)
         }
     }
 
@@ -24,10 +32,12 @@ data class IndexEntry(val name: String, val location: String) {
         override fun save(out: DataOutput, value: IndexEntry) {
             out.writeUTF(value.name)
             out.writeUTF(value.location)
+            out.writeInt(value.startOffset)
+            out.writeInt(value.endOffset)
         }
 
         override fun read(input: DataInput): IndexEntry {
-            return IndexEntry(input.readUTF(), input.readUTF())
+            return IndexEntry(input.readUTF(), input.readUTF(), input.readInt(), input.readInt())
         }
 
     }
