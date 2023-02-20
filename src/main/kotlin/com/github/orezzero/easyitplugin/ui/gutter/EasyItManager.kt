@@ -8,6 +8,8 @@ interface EasyItManager {
     fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry)
     fun onIndexUpdate(md: IndexEntry, code: IndexEntry)
     fun getLocation2Render(): Map<SimpleLocation, EasyItManagerImpl.Render>
+    fun getCodeLocation(linkLocation: IndexEntry): IndexEntry?
+    fun refreshCache(oldKey: IndexEntry, newKey: IndexEntry)
 
     companion object {
         fun getInstance(project: Project?): EasyItManager? {

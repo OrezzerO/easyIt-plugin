@@ -6,11 +6,13 @@ import com.github.orezzero.easyitplugin.runUndoTransparentWriteAction
 import com.github.orezzero.easyitplugin.ui.gutter.EasyItManager
 import com.github.orezzero.easyitplugin.ui.gutter.EasyItManagerImpl
 import com.github.orezzero.easyitplugin.util.FileUtils
+import com.github.orezzero.easyitplugin.util.LocationUtils
 import com.github.orezzero.easyitplugin.util.MarkdownElementUtils
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.BulkAwareDocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.refactoring.suggested.endOffset
@@ -19,13 +21,12 @@ import com.intellij.testFramework.LightVirtualFile
 
 class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentListener.Simple {
 
+    val manager = EasyItManager.getInstance(project)!!
 
     override fun afterDocumentChange(document: Document) {
         val file = FileDocumentManager.getInstance().getFile(document) ?: return
         if (file is LightVirtualFile) return
 
-
-        val manager = EasyItManager.getInstance(project) ?: return
         val map = sortedMapOf<SimpleLocation, Int>(compareBy { it.line })
         val set = mutableSetOf<Int>()
         val location2render = manager.getLocation2Render()
@@ -52,7 +53,7 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
                 else -> {
                     set.add(line)
                     location2render[location]?.let {
-                        collectChangeItem(it, location, line, elementToChange, toModify)
+                        collectChangeItem(it, line, elementToChange, toModify)
                     }
                 }
             }
@@ -65,10 +66,20 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
                 toModify[ele]?.let {
                     val originParent = ele.parent
                     println("change ${ele.text} to $str, origin offset: ${it.startOffset}- ${it.endOffset}")
+
+                    val doc = PsiDocumentManager.getInstance(project).getDocument(ele.containingFile)
                     ele.replace(MarkdownElementUtils.createMarkdownText(project, str))
-                    it.startOffset = originParent.firstChild.startOffset
-                    it.endOffset = originParent.firstChild.endOffset
+                    var oldKey = it.copy()
+                    val newKey = it.copy(
+                        startOffset = originParent.firstChild.startOffset,
+                        endOffset = originParent.firstChild.endOffset
+                    )
+                    manager.refreshCache(oldKey, newKey)
+                    it.startOffset = newKey.startOffset
+                    it.endOffset = newKey.endOffset
+                    PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(doc!!)
                     println("after change: ${it.startOffset}- ${it.endOffset}")
+
 
                 }
             }
@@ -77,19 +88,23 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
 
     private fun collectChangeItem(
         render: EasyItManagerImpl.Render,
-        codeLocation: SimpleLocation,
         line: Int,
         resultMap: MutableMap<PsiElement, String>,
         modifyMap: MutableMap<PsiElement, IndexEntry>
     ) {
-        render.linkLocations.forEach { l ->
-            l.let {
+        render.linkLocations.forEach { linkLocation ->
+            linkLocation.let {
                 val startOffset = it.startOffset
                 var newPathString = ""
                 FileUtils.findFileByRelativePath(project, it.location)?.let { mdFile ->
                     // todo : ensure doc not change since now
                     val psiFile = PsiManager.getInstance(project).findFile(mdFile)
-                    newPathString = codeLocation.copy(line = line).toString(project, mdFile)
+                    manager.getCodeLocation(it)?.let { codeLocation ->
+                        LocationUtils.toDest(project, codeLocation).copy(line = line)
+                            .toString(mdFile) // TODO: use cache
+                    }?.let { str ->
+                        newPathString = str
+                    }
                     psiFile?.findElementAt(startOffset)
                 }?.let { ele ->
                     resultMap[ele] = newPathString

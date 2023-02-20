@@ -8,7 +8,6 @@ import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
 import com.github.orezzero.easyitplugin.runReadAction
 import com.github.orezzero.easyitplugin.util.FileUtils
 import com.github.orezzero.easyitplugin.util.LocationUtils
-
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -39,21 +38,30 @@ class EasyItManagerImpl(val project: Project) : EasyItManager {
     }
 
     private val location2Renderer: MutableMap<SimpleLocation, Render> = ConcurrentHashMap()
+    private val link2codeCache: MutableMap<IndexEntry, IndexEntry> = ConcurrentHashMap()
     fun refresh() {
         // clear old index
         for (value in location2Renderer.values) {
             value.quickRemove()
         }
         location2Renderer.clear()
+        link2codeCache.clear()
 
         // put new index
         val instance = FileBasedIndex.getInstance()
-        val allKeys = runReadAction { instance.getAllKeys(MarkdownLinkIndex.NAME, project) }
-        for (key in allKeys) {
-            val values =
-                runReadAction { instance.getValues(MarkdownLinkIndex.NAME, key, GlobalSearchScope.allScope(project)) }
-            for (value in values) {
-                EasyItManager.getInstance(project)?.onIndexAdd(key, value)
+        val allLinkLocations = runReadAction { instance.getAllKeys(MarkdownLinkIndex.NAME, project) }
+        for (linkLocation in allLinkLocations) {
+            val codeLocations =
+                runReadAction {
+                    instance.getValues(
+                        MarkdownLinkIndex.NAME,
+                        linkLocation,
+                        GlobalSearchScope.allScope(project)
+                    )
+                }
+            when (codeLocations.size) {
+                1 -> EasyItManager.getInstance(project)?.onIndexAdd(linkLocation, codeLocations[0])
+                else -> throw IllegalStateException("Code location size error:${codeLocations.size}")
             }
         }
     }
@@ -62,9 +70,20 @@ class EasyItManagerImpl(val project: Project) : EasyItManager {
         return location2Renderer
     }
 
-    override fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry) {
-        val simpleCodeLocation = LocationUtils.toSimpleLocation(codeLocation)
+    override fun getCodeLocation(linkLocation: IndexEntry): IndexEntry? {
+        return link2codeCache[linkLocation]
+    }
 
+    override fun refreshCache(oldKey: IndexEntry, newKey: IndexEntry) {
+        link2codeCache.remove(oldKey)?.let {
+            link2codeCache[newKey] = it
+        }
+
+    }
+
+    override fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry) {
+        link2codeCache[linkLocation] = codeLocation
+        val simpleCodeLocation = LocationUtils.toSimpleLocation(codeLocation)
         val file = FileUtils.findFileByRelativePath(project, simpleCodeLocation.path)
         file?.let {
             val render = location2Renderer.computeIfAbsent(simpleCodeLocation) { l -> Render(l, project, file) }

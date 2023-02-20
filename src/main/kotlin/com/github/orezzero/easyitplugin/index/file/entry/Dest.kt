@@ -17,7 +17,7 @@ data class Dest(
     fun toString(base: VirtualFile): String {
         val relativePath = FileUtils.getRelativePath(base, file)
         val anchorStr = getAnchorString()
-        return "$relativePath?$anchorStr"
+        return "$relativePath#$anchorStr"
     }
 
     private fun getAnchorString(): String {
@@ -26,6 +26,7 @@ data class Dest(
             if (key.isNotEmpty()) {
                 when (key) {
                     "l" -> list.add("L$line")
+                    "L" -> list.add("L$line")
                     value -> list.add(key)
                     else -> list.add("$key=$value")
                 }
