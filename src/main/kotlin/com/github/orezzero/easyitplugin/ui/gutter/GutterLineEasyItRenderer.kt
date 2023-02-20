@@ -16,7 +16,7 @@ import java.lang.ref.WeakReference
 import javax.swing.Icon
 
 data class GutterLineEasyItRenderer(
-    val wrapper: EasyItManagerImpl.Render,
+    val wrapper: EasyItGutterManagerImpl.Render,
     val project: Project,
     val file: VirtualFile
 ) :

@@ -8,7 +8,7 @@ import com.intellij.openapi.project.Project
 class EasyItGutterListener : com.intellij.openapi.startup.StartupActivity {
     override fun runActivity(project: Project) {
         EditorFactory.getInstance().eventMulticaster.addDocumentListener(EasyItDocChangeListener(project), project)
-        EasyItManager.getInstance(project)!!
+        EasyItGutterManager.getInstance(project)!!
         IndexListenerDispatcher.getInstance(project)?.indexChanged()
     }
 }

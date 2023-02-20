@@ -3,8 +3,8 @@ package com.github.orezzero.easyitplugin.editor
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
 import com.github.orezzero.easyitplugin.runUndoTransparentWriteAction
-import com.github.orezzero.easyitplugin.ui.gutter.EasyItManager
-import com.github.orezzero.easyitplugin.ui.gutter.EasyItManagerImpl
+import com.github.orezzero.easyitplugin.ui.gutter.EasyItGutterManager
+import com.github.orezzero.easyitplugin.ui.gutter.EasyItGutterManagerImpl
 import com.github.orezzero.easyitplugin.util.FileUtils
 import com.github.orezzero.easyitplugin.util.LocationUtils
 import com.github.orezzero.easyitplugin.util.MarkdownElementUtils
@@ -21,7 +21,7 @@ import com.intellij.testFramework.LightVirtualFile
 
 class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentListener.Simple {
 
-    val manager = EasyItManager.getInstance(project)!!
+    val manager = EasyItGutterManager.getInstance(project)!!
 
     override fun afterDocumentChange(document: Document) {
         val file = FileDocumentManager.getInstance().getFile(document) ?: return
@@ -87,7 +87,7 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
     }
 
     private fun collectChangeItem(
-        render: EasyItManagerImpl.Render,
+        render: EasyItGutterManagerImpl.Render,
         line: Int,
         resultMap: MutableMap<PsiElement, String>,
         modifyMap: MutableMap<PsiElement, IndexEntry>

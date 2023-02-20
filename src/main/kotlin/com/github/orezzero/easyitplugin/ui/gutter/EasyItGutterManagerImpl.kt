@@ -16,7 +16,7 @@ import com.intellij.util.indexing.FileBasedIndex
 import java.util.concurrent.ConcurrentHashMap
 
 
-class EasyItManagerImpl(val project: Project) : EasyItManager {
+class EasyItGutterManagerImpl(val project: Project) : EasyItGutterManager {
     init {
         val manager = this
         IndexListenerDispatcher.getInstance(project)?.let {
@@ -60,7 +60,7 @@ class EasyItManagerImpl(val project: Project) : EasyItManager {
                     )
                 }
             when (codeLocations.size) {
-                1 -> EasyItManager.getInstance(project)?.onIndexAdd(linkLocation, codeLocations[0])
+                1 -> EasyItGutterManager.getInstance(project)?.onIndexAdd(linkLocation, codeLocations[0])
                 else -> throw IllegalStateException("Code location size error:${codeLocations.size}")
             }
         }

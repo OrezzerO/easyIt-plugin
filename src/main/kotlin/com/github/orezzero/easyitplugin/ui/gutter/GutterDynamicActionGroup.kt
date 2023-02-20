@@ -7,7 +7,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.*
 
-class GutterDynamicActionGroup(private val renderer: EasyItManagerImpl.Render) : ActionGroup() {
+class GutterDynamicActionGroup(private val renderer: EasyItGutterManagerImpl.Render) : ActionGroup() {
     override fun getChildren(e: AnActionEvent?): Array<AnAction> {
         val nodes = renderer.linkLocations
         return e?.project.let {
