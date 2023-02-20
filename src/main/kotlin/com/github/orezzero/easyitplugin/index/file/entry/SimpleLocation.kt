@@ -6,7 +6,7 @@ import com.intellij.openapi.vfs.VirtualFile
 
 data class SimpleLocation(val path: String, val line: Int) {
 
-    fun toString(project: Project, base: VirtualFile): CharSequence {
+    fun toString(project: Project, base: VirtualFile): String {
 
 
         val file = FileUtils.findFileByRelativePath(project, path)

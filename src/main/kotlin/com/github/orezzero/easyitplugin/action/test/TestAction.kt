@@ -29,8 +29,8 @@ class TestAction : AnAction() {
         var list = elementMap.get("org.intellij.plugins.markdown.lang.psi.impl.MarkdownLinkDestination")!!
         runUndoTransparentWriteAction {
             for (l in list) {
-                var inlineLink = MarkdownElementUtils.createLineDestination(project, " src/a/b/c/A.kt#L13")
-                l.replace(inlineLink)
+                var inlineLink = MarkdownElementUtils.createMarkdownText(project, "src/a/b/c/A.kt#L13")
+                l.firstChild.replace(inlineLink)
             }
         }
 

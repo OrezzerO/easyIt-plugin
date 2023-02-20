@@ -38,7 +38,11 @@ class IndexListenerDispatcher(val project: Project) {
         if (indexChanged.get()) {
             synchronized(this) {
                 if (indexChanged.compareAndSet(true, false)) {
-                    dispatcher.multicaster.indexChanged()
+                    try {
+                        dispatcher.multicaster.indexChanged()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         }

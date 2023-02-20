@@ -1,6 +1,7 @@
 package com.github.orezzero.easyitplugin.util
 
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.tree.TokenSet
 import org.intellij.plugins.markdown.lang.MarkdownFileType
@@ -47,5 +48,11 @@ object MarkdownElementUtils {
     fun createLineDestination(project: Project, dest: String): MarkdownLinkDestination {
         return createInlineLink(project, "[TEST]($dest)").linkDestination!!
     }
+
+    fun createMarkdownText(project: Project, text: String): PsiElement {
+        var file = createFile(project, text.trim())
+        return file.firstChild.firstChild.firstChild
+    }
+
 
 }

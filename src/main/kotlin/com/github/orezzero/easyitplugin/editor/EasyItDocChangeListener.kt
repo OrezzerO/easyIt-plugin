@@ -1,17 +1,24 @@
 package com.github.orezzero.easyitplugin.editor
 
+import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
+import com.github.orezzero.easyitplugin.runUndoTransparentWriteAction
 import com.github.orezzero.easyitplugin.ui.gutter.EasyItManager
 import com.github.orezzero.easyitplugin.ui.gutter.EasyItManagerImpl
 import com.github.orezzero.easyitplugin.util.FileUtils
-import com.intellij.openapi.command.WriteCommandAction
+import com.github.orezzero.easyitplugin.util.MarkdownElementUtils
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.BulkAwareDocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
+import com.intellij.refactoring.suggested.endOffset
+import com.intellij.refactoring.suggested.startOffset
 import com.intellij.testFramework.LightVirtualFile
 
 class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentListener.Simple {
+
 
     override fun afterDocumentChange(document: Document) {
         val file = FileDocumentManager.getInstance().getFile(document) ?: return
@@ -26,45 +33,67 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
         for (entry in location2render.entries) {
             if (entry.key.path == relativePath) {
                 val rangeMarker = entry.value.myRenderer.highlighter
-                val line =
+                val targetLine =
                     rangeMarker?.let { if (it.isValid) it.document.getLineNumber(it.startOffset) + 1 else null } ?: -1
                 when (entry.key.line) {
-                    line -> set.add(line)
-                    else -> map[entry.key] = line
+                    targetLine -> set.add(targetLine)
+                    else -> map[entry.key] = targetLine
                 }
             }
         }
         if (map.isEmpty()) return
-        WriteCommandAction.runWriteCommandAction(project) {
-            map.forEach { (location, line) ->
-                when {
-                    line < 0 || set.contains(line) -> null
-                    else -> {
-                        set.add(line)
-                        update(location2render[location], location, line)
+
+        // collect what to change
+        val elementToChange = mutableMapOf<PsiElement, String>()
+        val toModify = mutableMapOf<PsiElement, IndexEntry>()
+        map.forEach { (location, line) ->
+            when {
+                line < 0 || set.contains(line) -> null
+                else -> {
+                    set.add(line)
+                    location2render[location]?.let {
+                        collectChangeItem(it, location, line, elementToChange, toModify)
                     }
+                }
+            }
+        }
+
+
+        // do change
+        runUndoTransparentWriteAction {
+            elementToChange.forEach { (ele, str) ->
+                toModify[ele]?.let {
+                    val originParent = ele.parent
+                    println("change ${ele.text} to $str, origin offset: ${it.startOffset}- ${it.endOffset}")
+                    ele.replace(MarkdownElementUtils.createMarkdownText(project, str))
+                    it.startOffset = originParent.firstChild.startOffset
+                    it.endOffset = originParent.firstChild.endOffset
+                    println("after change: ${it.startOffset}- ${it.endOffset}")
+
                 }
             }
         }
     }
 
-    private fun update(render: EasyItManagerImpl.Render?, codeLocation: SimpleLocation, line: Int) {
-        render?.linkLocations?.sortedBy { it.startOffset }?.reversed()?.forEach { loca ->
-            loca.let {
+    private fun collectChangeItem(
+        render: EasyItManagerImpl.Render,
+        codeLocation: SimpleLocation,
+        line: Int,
+        resultMap: MutableMap<PsiElement, String>,
+        modifyMap: MutableMap<PsiElement, IndexEntry>
+    ) {
+        render.linkLocations.forEach { l ->
+            l.let {
                 val startOffset = it.startOffset
-                val endOffset = it.endOffset
+                var newPathString = ""
                 FileUtils.findFileByRelativePath(project, it.location)?.let { mdFile ->
-                    val doc = FileDocumentManager.getInstance().getCachedDocument(mdFile)
-                    // fixme:   这里有个问题, 连续变动之后, startOffset 和 endoffset 没有变, 导致了 replace 有问题
-                    // 也不能简单的修改 loca 的 offset 来修改, 因为一处replace 之后, 会影响之后的,要想办法统一修改(通过逆序)
-
-                    var newPathString = codeLocation.copy(line = line).toString(project, mdFile)
-                    doc?.replaceString(
-                        startOffset,
-                        endOffset,
-                        newPathString
-                    )
-                    it.endOffset = it.startOffset + newPathString.length
+                    // todo : ensure doc not change since now
+                    val psiFile = PsiManager.getInstance(project).findFile(mdFile)
+                    newPathString = codeLocation.copy(line = line).toString(project, mdFile)
+                    psiFile?.findElementAt(startOffset)
+                }?.let { ele ->
+                    resultMap[ele] = newPathString
+                    modifyMap[ele] = it
                 }
 
             }
