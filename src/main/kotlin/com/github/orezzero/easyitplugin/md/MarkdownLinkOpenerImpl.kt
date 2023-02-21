@@ -208,12 +208,12 @@ internal class MarkdownLinkOpenerImpl : MarkdownLinkOpener {
         }
 
         private fun checkLine(anchor: String): Pair<Boolean, Int> {
-            if (anchor.isEmpty()) {
+            if (anchor.isBlank()) {
                 return Pair(false, 0)
             }
 
             for (s in anchor.split("&")) {
-                if (s.isEmpty()) continue
+                if (s.isBlank()) continue
                 val firstChar = s[0]
                 if (firstChar == 'l' || firstChar == 'L') {
                     val substring = s.substring(1, s.length)

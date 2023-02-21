@@ -4,7 +4,10 @@ package com.github.orezzero.easyitplugin.ui.project.view
 import com.github.orezzero.easyitplugin.index.file.IndexListenerDispatcher
 import com.github.orezzero.easyitplugin.index.file.IndexManager
 import com.github.orezzero.easyitplugin.index.file.LinkIndexListener
+import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
+import com.github.orezzero.easyitplugin.md.MarkdownLanguageUtils.isMarkdownType
 import com.github.orezzero.easyitplugin.util.FileUtils
+import com.github.orezzero.easyitplugin.util.LocationUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
@@ -13,7 +16,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
-import java.util.*
 import javax.swing.SwingUtilities
 
 class EasyItFileNode : EasyItNode<VirtualFile> {
@@ -22,7 +24,14 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
 
     val indexManager = IndexManager.getInstance(project)
 
-    constructor(project: Project?, value: VirtualFile) : super(project, value)
+    var codeLocation: IndexEntry? = null
+
+    var order = Integer.MAX_VALUE
+
+    constructor(project: Project?, value: VirtualFile, codeLocation: IndexEntry) : super(project, value) {
+        this.codeLocation = codeLocation
+    }
+
     constructor(project: Project?, value: VirtualFile, root: Boolean) : super(project, value) {
         if (root) {
             subscribeToVFS(project!!)
@@ -34,41 +43,42 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
     }
 
     override fun getChildren(): Collection<AbstractTreeNode<*>?> {
-        val children: MutableList<AbstractTreeNode<*>?> = mutableListOf()
+        val fileNodes: MutableList<EasyItNode<*>> = mutableListOf()
+        val linkNodes: MutableList<EasyItNode<*>> = mutableListOf()
 
-        indexManager.getFileData(virtualFile)?.values?.let { codeLocations ->
-            for (codeLocation in codeLocations) {
-                val file = findVirtualFile(codeLocation.location)
-                if (file != virtualFile && isDestMdFile(file)) {
-                    children.add(EasyItFileNode(myProject, file!!))
-                } else if (file != null) {
-                    val linkNode = EasyItLinkNode(myProject, codeLocation)
-                    children.add(linkNode)
-                }
+        indexManager.getFileData(virtualFile)?.forEach { (linkLoc, codeLoc) ->
+            val codeFile = findVirtualFile(codeLoc.location)
+            if (codeFile != null && codeFile != virtualFile && codeFile.fileType.isMarkdownType()) {
+                fileNodes.add(EasyItFileNode(myProject, codeFile, codeLoc))
+            } else {
+                val linkNode = EasyItLinkNode(myProject, linkLoc, codeLoc)
+                linkNodes.add(linkNode)
             }
         }
-        oldChildren = children
-        return children
+        // sort
+        fileNodes.sortedBy { node -> node.order() }
+        linkNodes.sortedBy { node -> node.order() }
+        fileNodes.addAll(linkNodes)
+
+        oldChildren = fileNodes
+        return fileNodes
+    }
+
+    override fun order(): Int {
+        if (order == Int.MAX_VALUE) {
+            codeLocation?.let { order = LocationUtils.getOrder(it) }
+        }
+        println(order)
+        return order
     }
 
     private fun findVirtualFile(text: String): VirtualFile? {
         return FileUtils.findFileByRelativePath(virtualFile, text.substringBefore("#"))
     }
 
-    private fun isDestMdFile(file: VirtualFile?): Boolean {
-        if (file == null) {
-            return false
-        }
-        return file.extension == "md" || file.extension == "markdown"
-    }
-
     override fun update(presentation: PresentationData) {
         presentation.setIcon(AllIcons.Nodes.Folder)
-        var text = "DEFAULT"
-        text = Optional.ofNullable(
-            value
-        ).map { obj: VirtualFile -> obj.name }.orElse(text)
-        presentation.presentableText = text
+        presentation.presentableText = codeLocation?.name ?: value.name
     }
 
     override fun canNavigate(): Boolean {
@@ -101,8 +111,7 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
                     alarm.cancelAllRequests()
                     alarm.addRequest({
                         SwingUtilities.invokeLater {
-                            ProjectView.getInstance(myProject)
-                                .getProjectViewPaneById(EasyItProjectView.ID)
+                            ProjectView.getInstance(myProject).getProjectViewPaneById(EasyItProjectView.ID)
                                 .updateFromRoot(true) // todo 这里可以选择不 从 root 更新, 而是从某个节点更新, 可优化
                         }
                     }, 1000)

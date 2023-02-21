@@ -87,10 +87,8 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
     ) {
         render.linkLocations.forEach { linkLocation ->
             val mdFile = FileUtils.findFileByRelativePath(project, linkLocation.location)!!
-            val newPathString = manager.getCodeLocation(linkLocation)!!.let { codeLocation ->
-                LocationUtils.toDest(project, codeLocation).copy(line = line)
-                    .toString(mdFile)
-            }
+            val codeLocation = manager.getCodeLocation(linkLocation)!!
+            val newPathString = LocationUtils.toDest(project, codeLocation).copy(line = line).toString(mdFile)
             resultMap[linkLocation.linkDest!!.firstChild] = newPathString
         }
     }

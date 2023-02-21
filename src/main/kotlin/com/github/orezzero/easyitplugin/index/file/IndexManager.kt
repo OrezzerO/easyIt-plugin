@@ -67,6 +67,7 @@ class IndexManager(val project: Project) {
 
 
     fun index(mdFile: VirtualFile) {
+        val indexChangeFiles = mutableListOf<VirtualFile>()
         withWriteLock {
             PsiManager.getInstance(project).findFile(mdFile)?.let { psiFile ->
 
@@ -110,14 +111,17 @@ class IndexManager(val project: Project) {
                     }
                 })
                 store[mdFile] = result.toMap()
-                IndexListenerDispatcher.getInstance(project).indexChanged(mdFile)
+                indexChangeFiles.add(mdFile)
 
                 for (mdReference in mdReferences) {
-                    if (store[mdFile] == null) {
+                    if (store[mdReference] == null) {
                         index(mdReference)
                     }
                 }
             }
+        }
+        for (indexChangeFile in indexChangeFiles) {
+            IndexListenerDispatcher.getInstance(project).indexChanged(indexChangeFile)
         }
     }
 

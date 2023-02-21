@@ -60,6 +60,19 @@ class LocationUtils {
                 anchorAttributes[s.substring(0, lastLetter + 1)] = s.substring(lastLetter + 1)
             }
         }
+
+        fun getOrder(it: IndexEntry): Int {
+            val parseAnchor = parseAnchor(it.location)
+            val s = parseAnchor["order"]
+            try {
+                if (!s.isNullOrBlank()) {
+                    return Integer.parseInt(s)
+                }
+            } catch (e: NumberFormatException) {
+                // ignore
+            }
+            return Int.MAX_VALUE - 1
+        }
     }
 
 }
