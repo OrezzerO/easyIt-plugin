@@ -172,8 +172,9 @@ internal class MarkdownLinkOpenerImpl : MarkdownLinkOpener {
                 return true
             }
             if (!targetFile.hasMarkdownType()) {
-                if (isLine(anchor)) {
-                    val line = getLine(anchor)
+                val checkLine = checkLine(anchor)
+                if (checkLine.first) {
+                    val line = checkLine.second
                     val descriptor = OpenFileDescriptor(project, targetFile, line, 0)
                     invokeLater {
                         descriptor.navigate(true)
@@ -206,25 +207,21 @@ internal class MarkdownLinkOpenerImpl : MarkdownLinkOpener {
             }
         }
 
-        private fun getLine(anchor: String): Int {
-            if (isLine(anchor)) {
-                val substring = anchor.substring(1, anchor.length)
-                return Integer.parseInt(substring) - 1
-            }
-            throw IllegalStateException()
-        }
-
-        private fun isLine(anchor: String): Boolean {
+        private fun checkLine(anchor: String): Pair<Boolean, Int> {
             if (anchor.isEmpty()) {
-                return false
+                return Pair(false, 0)
             }
 
-            val firstChar = anchor[0]
-            if (firstChar == 'l' || firstChar == 'L') {
-                val substring = anchor.substring(1, anchor.length)
-                return StringUtils.isNumeric(substring)
+            for (s in anchor.split("&")) {
+                if (s.isEmpty()) continue
+                val firstChar = s[0]
+                if (firstChar == 'l' || firstChar == 'L') {
+                    val substring = s.substring(1, s.length)
+                    val numeric = StringUtils.isNumeric(substring)
+                    return if (numeric) Pair(true, Integer.parseInt(substring) - 1) else Pair(false, 0)
+                }
             }
-            return false
+            return Pair(false, 0)
         }
 
         private fun obtainHeadersPopupPosition(project: Project?): RelativePoint? {
