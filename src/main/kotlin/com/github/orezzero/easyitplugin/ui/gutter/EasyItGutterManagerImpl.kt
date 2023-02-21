@@ -1,87 +1,61 @@
 package com.github.orezzero.easyitplugin.ui.gutter
 
 import com.github.orezzero.easyitplugin.index.file.IndexListenerDispatcher
+import com.github.orezzero.easyitplugin.index.file.IndexManager
 import com.github.orezzero.easyitplugin.index.file.LinkIndexListener
-import com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
-import com.github.orezzero.easyitplugin.runReadAction
 import com.github.orezzero.easyitplugin.util.FileUtils
 import com.github.orezzero.easyitplugin.util.LocationUtils
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.indexing.FileBasedIndex
 import java.util.concurrent.ConcurrentHashMap
 
 
 class EasyItGutterManagerImpl(val project: Project) : EasyItGutterManager {
     init {
         val manager = this
-        IndexListenerDispatcher.getInstance(project)?.let {
-            it.addListener(object : LinkIndexListener {
-                init {
-                    val me: LinkIndexListener = this
-                    Disposer.register(
-                        project
-                    ) {
-                        it.removeListener(me)
-                    }
-                }
-
-                override fun indexChanged() {
-                    manager.refresh()
-                }
-            })
-        }
+        IndexListenerDispatcher.getInstance(project).addListener(object : LinkIndexListener {
+            override fun indexChanged(virtualFile: VirtualFile) {
+                manager.refresh()
+            }
+        })
     }
+
+    val indexManager = IndexManager.getInstance(project)
 
     private val location2Renderer: MutableMap<SimpleLocation, Render> = ConcurrentHashMap()
     private val link2codeCache: MutableMap<IndexEntry, IndexEntry> = ConcurrentHashMap()
     fun refresh() {
-        // clear old index
-        for (value in location2Renderer.values) {
-            value.quickRemove()
-        }
-        location2Renderer.clear()
-        link2codeCache.clear()
+        indexManager.withWriteLock {
+            // clear old index
+            for (value in location2Renderer.values) {
+                value.quickRemove()
+            }
+            location2Renderer.clear()
+            link2codeCache.clear()
 
-        // put new index
-        val instance = FileBasedIndex.getInstance()
-        val allLinkLocations = runReadAction { instance.getAllKeys(MarkdownLinkIndex.NAME, project) }
-        for (linkLocation in allLinkLocations) {
-            val codeLocations =
-                runReadAction {
-                    instance.getValues(
-                        MarkdownLinkIndex.NAME,
-                        linkLocation,
-                        GlobalSearchScope.allScope(project)
-                    )
-                }
-            when (codeLocations.size) {
-                1 -> EasyItGutterManager.getInstance(project)?.onIndexAdd(linkLocation, codeLocations[0])
-                else -> throw IllegalStateException("Code location size error:${codeLocations.size}")
+            // put new index
+            val allDate = indexManager.getAllDate()
+            for (maps in allDate.values) {
+                maps.forEach { (link, code) -> onIndexAdd(link, code) }
             }
         }
     }
 
     override fun getLocation2Render(): Map<SimpleLocation, Render> {
-        return location2Renderer
+        return indexManager.withReadLock {
+            location2Renderer
+        }
     }
 
     override fun getCodeLocation(linkLocation: IndexEntry): IndexEntry? {
-        return link2codeCache[linkLocation]
-    }
-
-    override fun refreshCache(oldKey: IndexEntry, newKey: IndexEntry) {
-        link2codeCache.remove(oldKey)?.let {
-            link2codeCache[newKey] = it
+        return indexManager.withReadLock {
+            link2codeCache[linkLocation]
         }
-
     }
 
-    override fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry) {
+    private fun onIndexAdd(linkLocation: IndexEntry, codeLocation: IndexEntry) {
         link2codeCache[linkLocation] = codeLocation
         val simpleCodeLocation = LocationUtils.toSimpleLocation(codeLocation)
         val file = FileUtils.findFileByRelativePath(project, simpleCodeLocation.path)
@@ -90,10 +64,6 @@ class EasyItGutterManagerImpl(val project: Project) : EasyItGutterManager {
             render.addLinkLocation(linkLocation)
             render.refreshRender()
         }
-    }
-
-    override fun onIndexUpdate(md: IndexEntry, code: IndexEntry) {
-        TODO("Not yet implemented")
     }
 
     inner class Render constructor(val location: SimpleLocation, project: Project, file: VirtualFile) {

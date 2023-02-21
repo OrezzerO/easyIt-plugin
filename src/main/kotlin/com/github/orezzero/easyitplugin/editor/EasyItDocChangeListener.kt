@@ -1,7 +1,8 @@
 package com.github.orezzero.easyitplugin.editor
 
-import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
+import com.github.orezzero.easyitplugin.index.file.IndexManager
 import com.github.orezzero.easyitplugin.index.file.entry.SimpleLocation
+import com.github.orezzero.easyitplugin.md.MarkdownLanguageUtils.isMarkdownType
 import com.github.orezzero.easyitplugin.runUndoTransparentWriteAction
 import com.github.orezzero.easyitplugin.ui.gutter.EasyItGutterManager
 import com.github.orezzero.easyitplugin.ui.gutter.EasyItGutterManagerImpl
@@ -12,24 +13,28 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.BulkAwareDocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
-import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
 import com.intellij.testFramework.LightVirtualFile
 
 class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentListener.Simple {
 
-    val manager = EasyItGutterManager.getInstance(project)!!
+    val manager = EasyItGutterManager.getInstance(project)
+    val indexManager = IndexManager.getInstance(project)
 
     override fun afterDocumentChange(document: Document) {
         val file = FileDocumentManager.getInstance().getFile(document) ?: return
         if (file is LightVirtualFile) return
 
+        if (file.fileType.isMarkdownType()) {
+            indexManager.index(file)
+            return
+        }
+
         val map = sortedMapOf<SimpleLocation, Int>(compareBy { it.line })
         val set = mutableSetOf<Int>()
-        val location2render = manager.getLocation2Render()
+        val location2render = manager.getLocation2Render() // todo 用 indexManager 中的方法
         val relativePath = FileUtils.getRelativePath(project, file)
         for (entry in location2render.entries) {
             if (entry.key.path == relativePath) {
@@ -46,72 +51,47 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
 
         // collect what to change
         val elementToChange = mutableMapOf<PsiElement, String>()
-        val toModify = mutableMapOf<PsiElement, IndexEntry>()
         map.forEach { (location, line) ->
             when {
                 line < 0 || set.contains(line) -> null
                 else -> {
                     set.add(line)
                     location2render[location]?.let {
-                        collectChangeItem(it, line, elementToChange, toModify)
+                        collectChangeItem(it, line, elementToChange)
                     }
                 }
             }
         }
 
 
+        val changeMdFiles = mutableListOf<VirtualFile>()
         // do change
         runUndoTransparentWriteAction {
             elementToChange.forEach { (ele, str) ->
-                toModify[ele]?.let {
-                    val originParent = ele.parent
-                    println("change ${ele.text} to $str, origin offset: ${it.startOffset}- ${it.endOffset}")
-
-                    val doc = PsiDocumentManager.getInstance(project).getDocument(ele.containingFile)
-                    ele.replace(MarkdownElementUtils.createMarkdownText(project, str))
-                    var oldKey = it.copy()
-                    val newKey = it.copy(
-                        startOffset = originParent.firstChild.startOffset,
-                        endOffset = originParent.firstChild.endOffset
-                    )
-                    manager.refreshCache(oldKey, newKey)
-                    it.startOffset = newKey.startOffset
-                    it.endOffset = newKey.endOffset
-                    PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(doc!!)
-                    println("after change: ${it.startOffset}- ${it.endOffset}")
-
-
-                }
+                println("change ${ele.text} to $str")
+                val doc = PsiDocumentManager.getInstance(project).getDocument(ele.containingFile)
+                val virtualFile = ele.containingFile.virtualFile
+                ele.replace(MarkdownElementUtils.createMarkdownText(project, str))
+                PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(doc!!)
+                changeMdFiles.add(virtualFile)
             }
         }
+        indexManager.index(changeMdFiles)
+
     }
 
     private fun collectChangeItem(
         render: EasyItGutterManagerImpl.Render,
         line: Int,
-        resultMap: MutableMap<PsiElement, String>,
-        modifyMap: MutableMap<PsiElement, IndexEntry>
+        resultMap: MutableMap<PsiElement, String>
     ) {
         render.linkLocations.forEach { linkLocation ->
-            linkLocation.let {
-                val startOffset = it.startOffset
-                var newPathString = ""
-                FileUtils.findFileByRelativePath(project, it.location)?.let { mdFile ->
-                    // todo : ensure doc not change since now
-                    val psiFile = PsiManager.getInstance(project).findFile(mdFile)
-                    manager.getCodeLocation(it)?.let { codeLocation ->
-                        LocationUtils.toDest(project, codeLocation).copy(line = line)
-                            .toString(mdFile) // TODO: use cache
-                    }?.let { str ->
-                        newPathString = str
-                    }
-                    psiFile?.findElementAt(startOffset)
-                }?.let { ele ->
-                    resultMap[ele] = newPathString
-                    modifyMap[ele] = it
-                }
-
+            val mdFile = FileUtils.findFileByRelativePath(project, linkLocation.location)!!
+            val newPathString = manager.getCodeLocation(linkLocation)!!.let { codeLocation ->
+                LocationUtils.toDest(project, codeLocation).copy(line = line)
+                    .toString(mdFile)
             }
+            resultMap[linkLocation.linkDest!!.firstChild] = newPathString
         }
     }
 }

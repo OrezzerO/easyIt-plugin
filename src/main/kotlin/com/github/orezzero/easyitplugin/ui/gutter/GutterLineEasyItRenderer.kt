@@ -56,7 +56,11 @@ data class GutterLineEasyItRenderer(
 
     private fun createHighlighter() {
         reference =
-            markup?.addPersistentLineHighlighter(CodeInsightColors.BOOKMARKS_ATTRIBUTES, wrapper.location.line, layer)
+            markup?.addPersistentLineHighlighter(
+                CodeInsightColors.BOOKMARKS_ATTRIBUTES,
+                wrapper.location.line - 1,
+                layer
+            )
                 ?.let {
                     it.gutterIconRenderer = this
                     it.errorStripeTooltip = tooltipText

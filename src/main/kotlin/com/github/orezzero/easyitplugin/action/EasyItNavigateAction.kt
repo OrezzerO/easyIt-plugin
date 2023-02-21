@@ -12,7 +12,7 @@ class EasyItNavigateAction(val entry: IndexEntry) : AnAction(entry.name) {
         val toSimpleLocation = LocationUtils.toSimpleLocation(entry)
         e.project?.let {
             it.guessProjectDir()?.findFileByRelativePath(toSimpleLocation.path)?.let { f ->
-                val openFileDescriptor = OpenFileDescriptor(it, f, toSimpleLocation.line, 0)
+                val openFileDescriptor = OpenFileDescriptor(it, f, toSimpleLocation.line - 1, 0)
                 openFileDescriptor.navigate(true)
             }
         }

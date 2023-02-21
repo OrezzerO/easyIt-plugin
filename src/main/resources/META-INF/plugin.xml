@@ -9,8 +9,7 @@
 
 
     <extensions defaultExtensionNs="com.intellij">
-        <postStartupActivity implementation="com.github.orezzero.easyitplugin.ui.gutter.EasyItGutterListener"/>
-        <fileBasedIndex implementation="com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex"/>
+        <postStartupActivity implementation="com.github.orezzero.easyitplugin.project.EasyItProjectListener"/>
         <projectViewPane implementation="com.github.orezzero.easyitplugin.ui.project.view.EasyItProjectView"/>
 
         <applicationService overrides="true"

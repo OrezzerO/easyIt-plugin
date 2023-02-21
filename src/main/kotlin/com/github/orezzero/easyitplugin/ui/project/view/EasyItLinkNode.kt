@@ -1,23 +1,23 @@
 package com.github.orezzero.easyitplugin.ui.project.view
 
-import com.github.orezzero.easyitplugin.index.file.entry.Dest
+import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 
-class EasyItLinkNode(project: Project, val dest: Dest) : EasyItNode<Dest>(project, dest) {
+class EasyItLinkNode(project: Project, val codeLocation: IndexEntry) : EasyItNode<IndexEntry>(project, codeLocation) {
     override fun getChildren(): Collection<AbstractTreeNode<*>> {
         return ArrayList()
     }
 
     override fun update(presentation: PresentationData) {
         presentation.setIcon(AllIcons.Nodes.Method)
-        presentation.presentableText = dest.name
+        presentation.presentableText = codeLocation.name
     }
 
     override fun canNavigate(): Boolean {
-        return true
+        return codeLocation.linkDest?.canNavigate() ?: false
     }
 
     override fun canNavigateToSource(): Boolean {
@@ -25,9 +25,7 @@ class EasyItLinkNode(project: Project, val dest: Dest) : EasyItNode<Dest>(projec
     }
 
     override fun navigate(requestFocus: Boolean) {
-        value?.also {
-            it.descriptor.navigate(true)
-        }
+        codeLocation.linkDest?.navigate(true)
     }
 
     // TODO attention: 这里重载了父类的 equals 和 hashcode, 父类的方法使用 value 作为比较的对象,

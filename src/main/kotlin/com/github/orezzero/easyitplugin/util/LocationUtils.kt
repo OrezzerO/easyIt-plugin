@@ -20,7 +20,7 @@ class LocationUtils {
 
 
         fun getLineNum(anchorAttributes: Map<String, String>): Int {
-            return anchorAttributes["L"]?.let { Integer.valueOf(it) - 1 } ?: 0
+            return anchorAttributes["L"]?.let { Integer.valueOf(it) } ?: 0
         }
 
         fun toDest(project: Project, kv: IndexEntry): Dest {

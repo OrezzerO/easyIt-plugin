@@ -2,29 +2,25 @@ package com.github.orezzero.easyitplugin.ui.project.view
 
 
 import com.github.orezzero.easyitplugin.index.file.IndexListenerDispatcher
+import com.github.orezzero.easyitplugin.index.file.IndexManager
 import com.github.orezzero.easyitplugin.index.file.LinkIndexListener
-import com.github.orezzero.easyitplugin.index.file.MarkdownLinkIndex
 import com.github.orezzero.easyitplugin.util.FileUtils
-import com.github.orezzero.easyitplugin.util.LocationUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileEvent
-import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
-import com.intellij.util.indexing.FileBasedIndex
 import java.util.*
 import javax.swing.SwingUtilities
 
 class EasyItFileNode : EasyItNode<VirtualFile> {
 
     var oldChildren: Collection<AbstractTreeNode<*>?> = emptyList()
+
+    val indexManager = IndexManager.getInstance(project)
 
     constructor(project: Project?, value: VirtualFile) : super(project, value)
     constructor(project: Project?, value: VirtualFile, root: Boolean) : super(project, value) {
@@ -38,19 +34,15 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
     }
 
     override fun getChildren(): Collection<AbstractTreeNode<*>?> {
-//        val list: List<MarkdownInlineLink> = ArrayList()
         val children: MutableList<AbstractTreeNode<*>?> = mutableListOf()
 
-        var fileData = FileBasedIndex.getInstance().getFileData(MarkdownLinkIndex.NAME, virtualFile, project)
-        val mdEntries = fileData.values
-
-        for (value in mdEntries) {
-            val file = findVirtualFile(value.location)
-            if (file != virtualFile && isDestMdFile(file)) {
-                children.add(EasyItFileNode(myProject, file!!))
-            } else if (file != null) {
-                LocationUtils.toDest(project, value)?.let {
-                    val linkNode = EasyItLinkNode(myProject, it)
+        indexManager.getFileData(virtualFile)?.values?.let { codeLocations ->
+            for (codeLocation in codeLocations) {
+                val file = findVirtualFile(codeLocation.location)
+                if (file != virtualFile && isDestMdFile(file)) {
+                    children.add(EasyItFileNode(myProject, file!!))
+                } else if (file != null) {
+                    val linkNode = EasyItLinkNode(myProject, codeLocation)
                     children.add(linkNode)
                 }
             }
@@ -97,56 +89,14 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
             return
         }
 
-        // todo 还需要鉴定 MD 文件的变化
+        // TODO: (done) 1. 监听自身的Index 变化
+        // TODO: 2. 自身那个 Index 需要监听下文件的变化, 如果文件被删除或者移动, 需要修改Index
+        // todo: 3. 需要增强一下 MD 文件 rename 那个 processor , 同步修改 link 信息
+
         val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, project)
-        LocalFileSystem.getInstance().addVirtualFileListener(object : VirtualFileListener {
-            init {
-                val me: VirtualFileListener = this
-                Disposer.register(
-                    project
-                ) {
-                    LocalFileSystem.getInstance().removeVirtualFileListener(
-                        me
-                    )
-                }
-            }
-
-            override fun fileCreated(event: VirtualFileEvent) {
-                handle(event)
-            }
-
-            override fun fileDeleted(event: VirtualFileEvent) {
-                handle(event)
-            }
-
-            fun handle(event: VirtualFileEvent) {
-                val filename = event.fileName.lowercase(Locale.getDefault())
-                if (filename.endsWith(".md")) {
-                    // md file changes
-                    alarm.cancelAllRequests()
-                    alarm.addRequest({
-                        SwingUtilities.invokeLater {
-                            ProjectView.getInstance(myProject)
-                                .getProjectViewPaneById(EasyItProjectView.ID)
-                                .updateFromRoot(true) // todo 这里可以选择不 从 root 更新, 而是从某个节点更新, 可优化
-                        }
-                    }, 1000)
-                }
-            }
-        })
-
-        IndexListenerDispatcher.getInstance(project)?.let {
+        IndexListenerDispatcher.getInstance(project).let {
             it.addListener(object : LinkIndexListener {
-                init {
-                    val me: LinkIndexListener = this
-                    Disposer.register(
-                        project
-                    ) {
-                        it.removeListener(me)
-                    }
-                }
-
-                override fun indexChanged() {
+                override fun indexChanged(virtualFile: VirtualFile) {
                     // md file changes
                     alarm.cancelAllRequests()
                     alarm.addRequest({
