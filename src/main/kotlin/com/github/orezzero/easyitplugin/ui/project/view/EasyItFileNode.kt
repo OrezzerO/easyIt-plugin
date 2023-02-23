@@ -73,7 +73,7 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
     }
 
     private fun findVirtualFile(text: String): VirtualFile? {
-        return FileUtils.findFileByRelativePath(virtualFile, text.substringBefore("#"))
+        return FileUtils.findFileByRelativePath(project, text.substringBefore("#"))
     }
 
     override fun update(presentation: PresentationData) {

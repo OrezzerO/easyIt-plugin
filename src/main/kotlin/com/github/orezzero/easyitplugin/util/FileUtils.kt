@@ -58,7 +58,6 @@ object FileUtils {
                 // Create the file in the final directory
                 parent.createChildData(FileUtils, dirs[dirs.size - 1])
             }
-            null
         }
     }
 }
