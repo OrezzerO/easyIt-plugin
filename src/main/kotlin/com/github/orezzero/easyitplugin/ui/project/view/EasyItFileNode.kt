@@ -55,9 +55,6 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
                 linkNodes.add(linkNode)
             }
         }
-        // sort
-        fileNodes.sortedBy { node -> node.order() }
-        linkNodes.sortedBy { node -> node.order() }
         fileNodes.addAll(linkNodes)
 
         oldChildren = fileNodes
@@ -68,7 +65,7 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
         if (order == Int.MAX_VALUE) {
             codeLocation?.let { order = LocationUtils.getOrder(it) }
         }
-        println(order)
+        println("${codeLocation?.name ?: value.name}:$order")
         return order
     }
 

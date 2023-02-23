@@ -62,7 +62,7 @@ class LocationUtils {
         }
 
         fun getOrder(it: IndexEntry): Int {
-            val parseAnchor = parseAnchor(it.location)
+            val parseAnchor = parseAnchor(it.location.substringAfter("#"))
             val s = parseAnchor["order"]
             try {
                 if (!s.isNullOrBlank()) {
