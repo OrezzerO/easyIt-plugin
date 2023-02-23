@@ -12,15 +12,8 @@ class EasyItRecordAction : AnAction() {
         if (editor == null || psiFile == null) {
             return
         }
-        val caretModel = editor.caretModel
-        val record = OneTimeRecorder.Record()
-        record.offset = caretModel.offset
-        record.text = caretModel.primaryCaret.selectedText
-        record.selectedStart = caretModel.primaryCaret.selectionStart
-        record.selectedEnd = caretModel.primaryCaret.selectionEnd
-        record.doc = editor.document
-        record.virtualFile = psiFile.virtualFile
-        // todo record something
+        val line = editor.caretModel.logicalPosition.line + 1
+        val record = OneTimeRecorder.Record(psiFile.virtualFile, line)
         OneTimeRecorder.push(record)
     }
 }

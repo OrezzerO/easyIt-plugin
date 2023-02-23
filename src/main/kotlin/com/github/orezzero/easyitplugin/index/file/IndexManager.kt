@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 class IndexManager(val project: Project) {
     companion object {
 
-        const val ROOT_PATH = "README.md"
+        const val ROOT_PATH = ".easyit/Index.md"
         fun getInstance(project: Project): IndexManager {
             return if (project.isDisposed) throw IllegalStateException("project is disposed: $project") else project.getService(
                 IndexManager::class.java

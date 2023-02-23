@@ -1,5 +1,6 @@
 package com.github.orezzero.easyitplugin.util
 
+import com.github.orezzero.easyitplugin.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
@@ -41,4 +42,24 @@ object FileUtils {
         return findFileByRelativePath(project.guessProjectDir()!!, relativePath)
     }
 
+    fun createFile(project: Project, pathRelatedToProject: String): VirtualFile? {
+        return runWriteAction {
+            project.guessProjectDir()?.let {
+                val dirs = pathRelatedToProject.split("/")
+                var parent = it
+                for (i in 0 until dirs.size - 1) {
+                    var dir = parent.findChild(dirs[i])
+                    if (dir == null) {
+                        dir = parent.createChildDirectory(FileUtils, dirs[i])
+                    }
+                    parent = dir
+                }
+
+                // Create the file in the final directory
+                parent.createChildData(FileUtils, dirs[dirs.size - 1])
+            }
+            null
+        }
+    }
 }
+

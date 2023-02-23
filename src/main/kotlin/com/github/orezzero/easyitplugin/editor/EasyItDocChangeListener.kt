@@ -28,7 +28,7 @@ class EasyItDocChangeListener(private val project: Project) : BulkAwareDocumentL
         if (file is LightVirtualFile) return
 
         if (file.fileType.isMarkdownType()) {
-            indexManager.index(file)
+//            indexManager.index(file)
             return
         }
 

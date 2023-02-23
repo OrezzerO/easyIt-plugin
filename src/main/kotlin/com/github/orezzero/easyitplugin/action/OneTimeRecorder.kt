@@ -1,6 +1,5 @@
 package com.github.orezzero.easyitplugin.action
 
-import com.intellij.openapi.editor.Document
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.concurrent.atomic.AtomicReference
 
@@ -16,12 +15,5 @@ object OneTimeRecorder {
         return record
     }
 
-    class Record {
-        var offset = 0
-        var text: String? = null
-        var doc: Document? = null
-        var selectedStart = 0
-        var selectedEnd = 0
-        var virtualFile: VirtualFile? = null
-    }
+    class Record(val file: VirtualFile, val line: Int)
 }
