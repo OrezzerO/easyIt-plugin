@@ -7,13 +7,16 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 
 class EasyItRecordAction : AnAction() {
     override fun actionPerformed(anActionEvent: AnActionEvent) {
+        OneTimeRecorder.pop()
         val editor = anActionEvent.getData(CommonDataKeys.EDITOR)
         val psiFile = anActionEvent.getData(CommonDataKeys.PSI_FILE)
         if (editor == null || psiFile == null) {
             return
         }
         val line = editor.caretModel.logicalPosition.line + 1
-        val record = OneTimeRecorder.Record(psiFile.virtualFile, line)
+        val str = editor.caretModel.primaryCaret.selectedText
+        val record = OneTimeRecorder.Record(psiFile.virtualFile, line, str)
+
         OneTimeRecorder.push(record)
     }
 }

@@ -15,5 +15,9 @@ object OneTimeRecorder {
         return record
     }
 
-    class Record(val file: VirtualFile, val line: Int)
+    fun peek(): Record? {
+        return RECORD.get()
+    }
+
+    class Record(val file: VirtualFile, val line: Int, val str: String?)
 }

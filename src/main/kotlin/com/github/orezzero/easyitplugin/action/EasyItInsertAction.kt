@@ -9,7 +9,7 @@ import com.intellij.openapi.command.WriteCommandAction
 
 class EasyItInsertAction : AnAction() {
     override fun actionPerformed(anActionEvent: AnActionEvent) {
-        val pop = OneTimeRecorder.pop() ?: return
+        val pop = OneTimeRecorder.peek() ?: return
         val editor = anActionEvent.getData(CommonDataKeys.EDITOR)
         val psiFile = anActionEvent.getData(CommonDataKeys.PSI_FILE)
         if (editor == null || psiFile == null) {
@@ -21,6 +21,7 @@ class EasyItInsertAction : AnAction() {
 
         val caretModel = editor.caretModel
         val doc = editor.document
+        val linkText = caretModel.primaryCaret.selectedText ?: pop.str
 
         WriteCommandAction.runWriteCommandAction(
             anActionEvent.project
@@ -28,7 +29,7 @@ class EasyItInsertAction : AnAction() {
             doc.replaceString(
                 caretModel.primaryCaret.selectionStart,
                 caretModel.primaryCaret.selectionEnd,
-                "[" + caretModel.primaryCaret.selectedText + "](" + path + "#L" + pop.line + ")"
+                "[" + linkText + "](" + path + "#L" + pop.line + ")"
             )
         }
     }
