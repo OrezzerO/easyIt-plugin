@@ -6,10 +6,7 @@ import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.tree.TokenSet
 import org.intellij.plugins.markdown.lang.MarkdownFileType
 import org.intellij.plugins.markdown.lang.MarkdownTokenTypes
-import org.intellij.plugins.markdown.lang.psi.impl.MarkdownFile
-import org.intellij.plugins.markdown.lang.psi.impl.MarkdownInlineLink
-import org.intellij.plugins.markdown.lang.psi.impl.MarkdownLinkDestination
-import org.intellij.plugins.markdown.lang.psi.impl.MarkdownLinkText
+import org.intellij.plugins.markdown.lang.psi.impl.*
 
 object MarkdownElementUtils {
     fun getLinkDestinationText(markdownLinkDestination: MarkdownLinkDestination): String {
@@ -54,5 +51,8 @@ object MarkdownElementUtils {
         return file.firstChild.firstChild.firstChild
     }
 
+    fun getHeaderText(header: MarkdownHeader): String {
+        return header.text
+    }
 
 }
