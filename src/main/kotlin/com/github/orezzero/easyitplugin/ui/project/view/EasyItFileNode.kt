@@ -5,9 +5,7 @@ import com.github.orezzero.easyitplugin.index.file.IndexListenerDispatcher
 import com.github.orezzero.easyitplugin.index.file.IndexManager
 import com.github.orezzero.easyitplugin.index.file.LinkIndexListener
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
-import com.github.orezzero.easyitplugin.md.MarkdownLanguageUtils.isMarkdownType
-import com.github.orezzero.easyitplugin.util.FileUtils
-import com.github.orezzero.easyitplugin.util.LocationUtils
+import com.github.orezzero.easyitplugin.index.file.entry.LayerId
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
@@ -20,19 +18,24 @@ import javax.swing.SwingUtilities
 
 class EasyItFileNode : EasyItNode<VirtualFile> {
 
-    var oldChildren: Collection<AbstractTreeNode<*>?> = emptyList()
-
     val indexManager = IndexManager.getInstance(project)
 
     var codeLocation: IndexEntry? = null
 
-    var order = Integer.MAX_VALUE
 
-    constructor(project: Project?, value: VirtualFile, codeLocation: IndexEntry) : super(project, value) {
+    constructor(project: Project?, value: VirtualFile, codeLocation: IndexEntry, layerId: LayerId) : super(
+        project,
+        value,
+        layerId
+    ) {
         this.codeLocation = codeLocation
     }
 
-    constructor(project: Project?, value: VirtualFile, root: Boolean) : super(project, value) {
+    constructor(project: Project?, value: VirtualFile, root: Boolean, layerId: LayerId) : super(
+        project,
+        value,
+        layerId
+    ) {
         if (root) {
             subscribeToVFS(project!!)
         }
@@ -43,34 +46,9 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
     }
 
     override fun getChildren(): Collection<AbstractTreeNode<*>?> {
-        val fileNodes: MutableList<EasyItNode<*>> = mutableListOf()
-        val linkNodes: MutableList<EasyItNode<*>> = mutableListOf()
-
-        indexManager.getFileData(virtualFile)?.forEach { (linkLoc, codeLoc) ->
-            val codeFile = findVirtualFile(codeLoc.location)
-            if (codeFile != null && codeFile != virtualFile && codeFile.fileType.isMarkdownType()) {
-                fileNodes.add(EasyItFileNode(myProject, codeFile, codeLoc))
-            } else {
-                val linkNode = EasyItLinkNode(myProject, linkLoc, codeLoc)
-                linkNodes.add(linkNode)
-            }
-        }
-        fileNodes.addAll(linkNodes)
-
-        oldChildren = fileNodes
-        return fileNodes
-    }
-
-    override fun order(): Int {
-        if (order == Int.MAX_VALUE) {
-            codeLocation?.let { order = LocationUtils.getOrder(it) }
-        }
-        println("${codeLocation?.name ?: value.name}:$order")
-        return order
-    }
-
-    private fun findVirtualFile(text: String): VirtualFile? {
-        return FileUtils.findFileByRelativePath(project, text.substringBefore("#"))
+        val nodes: MutableList<EasyItNode<*>> = mutableListOf()
+         indexManager.getFileRoot(virtualFile)?.getChildren()?.forEach { generateTreeNode(it, nodes) }
+        return nodes
     }
 
     override fun update(presentation: PresentationData) {

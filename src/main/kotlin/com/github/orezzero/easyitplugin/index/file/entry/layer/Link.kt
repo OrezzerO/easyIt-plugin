@@ -6,5 +6,5 @@ import com.github.orezzero.easyitplugin.index.file.entry.LayerId
 class Link(
     val link: IndexEntry,
     val code: IndexEntry,
-    val id: LayerId,
-)
+    id: LayerId,
+) : MarkdownLayer(link.name, id)

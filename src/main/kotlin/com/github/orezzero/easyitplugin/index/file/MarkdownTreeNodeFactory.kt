@@ -17,8 +17,9 @@ class MarkdownTreeNodeFactory {
             return Header(headerText, level, id)
         }
 
-        fun buildListItem(element: MarkdownListItem, level: Int, id: LayerId): ListItem {
-            val text = element.text
+        fun buildListItem(listItem: MarkdownListItem, level: Int, id: LayerId): ListItem {
+            val text = "ListItem ${id.listId[id.listId.size - 1]}"
+
             return ListItem(text, level, id)
         }
 

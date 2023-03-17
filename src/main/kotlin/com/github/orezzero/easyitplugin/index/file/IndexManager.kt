@@ -39,7 +39,7 @@ class IndexManager(val project: Project) {
      *
      */
     private val store: MutableMap<VirtualFile, Map<IndexEntry, IndexEntry>> = mutableMapOf()
-    private val treeStore: MutableMap<VirtualFile, TreeNode<*>> = mutableMapOf()
+    private val treeStore: MutableMap<VirtualFile, TreeNode<VirtualFile>> = mutableMapOf()
 
     /**
      * Index md file and new file references in it. Indexed file reference will not be indexed.
@@ -90,6 +90,10 @@ class IndexManager(val project: Project) {
      */
     fun getFileData(virtualFile: VirtualFile): Map<IndexEntry, IndexEntry>? {
         return withReadLock { store[virtualFile] }
+    }
+
+    fun getFileRoot(virtualFile: VirtualFile): TreeNode<VirtualFile>? {
+        return withReadLock { treeStore[virtualFile] }
     }
 
     fun getAllDate(): Map<VirtualFile, Map<IndexEntry, IndexEntry>> {

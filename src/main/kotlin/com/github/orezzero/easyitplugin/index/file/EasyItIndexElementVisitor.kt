@@ -89,6 +89,7 @@ class EasyItIndexElementVisitor(
             listStack.popLowerThan(listItem.level) ?: if (headerStack.isEmpty()) root else headerStack.peek()
 
         val treeNode = TreeNode(listItem, parent)
+        listStack.push(treeNode)
         parent.addChild(treeNode)
     }
 
@@ -96,6 +97,7 @@ class EasyItIndexElementVisitor(
         markdownLayer.listStart(list)
         super.visitList(list)
         markdownLayer.listEnd(list)
+        listStack.popLowerThan(markdownLayer.listLayer.size)
     }
 
     /**

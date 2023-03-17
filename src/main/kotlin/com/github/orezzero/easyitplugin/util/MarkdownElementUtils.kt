@@ -52,7 +52,11 @@ object MarkdownElementUtils {
     }
 
     fun getHeaderText(header: MarkdownHeader): String {
-        return header.text
+        return header.firstChild.nextSibling.text
+    }
+
+    fun getListItemText(listItem: MarkdownListItem): String {
+        return listItem.firstChild.nextSibling.text
     }
 
 }

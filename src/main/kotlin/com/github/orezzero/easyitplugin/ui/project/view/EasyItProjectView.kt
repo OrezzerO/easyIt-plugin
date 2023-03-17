@@ -1,6 +1,7 @@
 package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.github.orezzero.easyitplugin.index.file.IndexManager
+import com.github.orezzero.easyitplugin.index.file.entry.LayerId
 import com.github.orezzero.easyitplugin.util.FileUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.SelectInTarget
@@ -63,7 +64,7 @@ class EasyItProjectView(project: Project) : AbstractProjectViewPaneWithAsyncSupp
                     indexFile = FileUtils.findFileByRelativePath(project, IndexManager.ROOT_PATH)
                 }
 
-                return EasyItFileNode(project, indexFile!!, true)
+                return EasyItFileNode(project, indexFile!!, true, LayerId.META)
             }
 
             // Children will be searched in async mode
