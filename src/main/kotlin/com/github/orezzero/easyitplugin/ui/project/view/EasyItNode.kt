@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.github.orezzero.easyitplugin.index.file.entry.LayerId
@@ -27,7 +29,7 @@ abstract class EasyItNode<T> protected constructor(project: Project?, value: T, 
     fun generateTreeNode(node: TreeNode<*>, nodes: MutableList<EasyItNode<*>>) {
         when (node.value) {
             is Link -> nodes.add(handleLink(node as TreeNode<Link>))
-            is ListItem -> nodes.add(handleListItem(node as TreeNode<ListItem>))
+            is ListItem -> nodes.addAll(handleListItem(node as TreeNode<ListItem>))
             is Header -> nodes.add(handleHeader(node as TreeNode<Header>))
             else -> throw IllegalStateException("Unexpected treeNode value type: ${node.value?.javaClass?.name} ")
         }
@@ -47,8 +49,41 @@ abstract class EasyItNode<T> protected constructor(project: Project?, value: T, 
         }
     }
 
-    private fun handleListItem(node: TreeNode<ListItem>): EasyItNode<*> {
-        return CommonEasyItNode(project, node, node.value.id)
+    private fun handleListItem(node: TreeNode<ListItem>): List<EasyItNode<*>> {
+        return if (node.getChildren().isNotEmpty()) {
+            var parent: EasyItLinkNode? = null
+            val result: MutableList<EasyItNode<*>> = mutableListOf()
+            for (child in node.getChildren()) {
+                if (child.value is Link) {
+                    val easyItNode = handleLink(child as TreeNode<Link>)
+                    result.add(easyItNode)
+                    if (easyItNode is EasyItLinkNode) {
+                        parent = easyItNode
+                    }
+                } else if (child.value is ListItem) {
+                    val subResult = handleListItem(child as TreeNode<ListItem>)
+                    if (parent != null) {
+                        parent.addChildren(subResult)
+                    } else {
+                        result.addAll(subResult)
+                    }
+                } else {
+                    throw IllegalStateException("Unresolved TreeNode type: ${child.value?.javaClass?.name} ")
+                }
+            }
+            return result
+        } else {
+            listOf()
+        }
+    }
+
+    private fun haveList(children: List<TreeNode<*>>): Boolean {
+        for (child in children) {
+            if (child.value is ListItem) {
+                return true
+            }
+        }
+        return false
     }
 
     fun findVirtualFile(location: String): VirtualFile? {

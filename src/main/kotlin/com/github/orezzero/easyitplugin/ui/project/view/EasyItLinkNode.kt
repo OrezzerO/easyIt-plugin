@@ -10,8 +10,10 @@ import com.intellij.openapi.project.Project
 class EasyItLinkNode(project: Project, val linkLocation: IndexEntry, val codeLocation: IndexEntry, layerId: LayerId) :
     EasyItNode<IndexEntry>(project, linkLocation, layerId) {
 
+    var children: MutableList<EasyItNode<*>> = mutableListOf()
+
     override fun getChildren(): Collection<AbstractTreeNode<*>> {
-        return ArrayList()
+        return children
     }
 
     override fun update(presentation: PresentationData) {
@@ -39,6 +41,10 @@ class EasyItLinkNode(project: Project, val linkLocation: IndexEntry, val codeLoc
 
     override fun hashCode(): Int {
         return System.identityHashCode(this)
+    }
+
+    fun addChildren(children: List<EasyItNode<*>>) {
+        this.children.addAll(children)
     }
 
 
