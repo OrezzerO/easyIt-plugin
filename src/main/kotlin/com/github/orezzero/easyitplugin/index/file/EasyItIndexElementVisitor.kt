@@ -38,8 +38,6 @@ class EasyItIndexElementVisitor(
             val name = parent.linkText.let {
                 MarkdownElementUtils.getLinkTextString(it)
             }
-            val traceId = markdownLayer.toString()
-            println("$name:$traceId ")
             FileUtils.findFileByRelativePath(mdFile, linkDest)?.let {
                 if (it.fileType.isMarkdownType()) {
                     mdReferences.add(it)
@@ -62,6 +60,7 @@ class EasyItIndexElementVisitor(
                 } else {
                     root
                 }
+                markdownLayer.acceptLink()
                 val link =
                     MarkdownTreeNodeFactory.buildLink(linkLocation, codeLocation, markdownLayer.getCurrentLayerId())
                 val treeNode = TreeNode(link, parent)

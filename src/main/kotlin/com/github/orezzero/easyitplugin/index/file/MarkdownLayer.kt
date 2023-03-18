@@ -13,17 +13,17 @@ import java.util.*
 class MarkdownLayer {
     val headerLayer = mutableListOf<Int>()
     val listLayer = Stack<Int>()
-    val linkLayer = 0
+    var linkLayer = 0
 
     fun acceptHeader(header: MarkdownHeader) {
         // todo add lock
+        this.linkLayer = 0
         val headerLayer = getHeaderLayer(header)
         while (this.headerLayer.size - 1 < headerLayer) this.headerLayer.add(0)
         this.headerLayer[headerLayer]++
         for (i in headerLayer + 1 until this.headerLayer.size) {
             this.headerLayer[i] = 0
         }
-        printMajor()
     }
 
 
@@ -75,5 +75,9 @@ class MarkdownLayer {
 
     fun getCurrentLayerId(): LayerId {
         return LayerId(headerLayer.toList(), listLayer.toList(), linkLayer)
+    }
+
+    fun acceptLink() {
+        linkLayer++
     }
 }

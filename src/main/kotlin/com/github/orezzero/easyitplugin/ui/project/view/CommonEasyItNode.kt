@@ -23,7 +23,7 @@ class CommonEasyItNode<L>(
         value.getChildren().forEach {
             generateTreeNode(it, nodes)
         }
-        return nodes;
+        return nodes
     }
 
 //    override fun canNavigate(): Boolean {
