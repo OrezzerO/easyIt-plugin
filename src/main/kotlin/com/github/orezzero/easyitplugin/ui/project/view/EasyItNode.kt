@@ -36,7 +36,7 @@ abstract class EasyItNode<T> protected constructor(project: Project?, value: T, 
     }
 
     private fun handleHeader(treeNode: TreeNode<Header>): EasyItNode<*> {
-        return CommonEasyItNode(project, treeNode, treeNode.value.id)
+        return CommonEasyItNode(project, treeNode, treeNode.value.id, treeNode.value.navigatable)
     }
 
 

@@ -6,7 +6,6 @@ import com.github.orezzero.easyitplugin.index.file.IndexManager
 import com.github.orezzero.easyitplugin.index.file.LinkIndexListener
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.LayerId
-import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.util.treeView.AbstractTreeNode
@@ -14,6 +13,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
+import org.intellij.plugins.markdown.MarkdownIcons
 import javax.swing.SwingUtilities
 
 class EasyItFileNode : EasyItNode<VirtualFile> {
@@ -47,12 +47,12 @@ class EasyItFileNode : EasyItNode<VirtualFile> {
 
     override fun getChildren(): Collection<AbstractTreeNode<*>?> {
         val nodes: MutableList<EasyItNode<*>> = mutableListOf()
-         indexManager.getFileRoot(virtualFile)?.getChildren()?.forEach { generateTreeNode(it, nodes) }
+        indexManager.getFileRoot(virtualFile)?.getChildren()?.forEach { generateTreeNode(it, nodes) }
         return nodes
     }
 
     override fun update(presentation: PresentationData) {
-        presentation.setIcon(AllIcons.Nodes.Folder)
+        presentation.setIcon(MarkdownIcons.MarkdownPlugin)
         presentation.presentableText = codeLocation?.name ?: value.name
     }
 

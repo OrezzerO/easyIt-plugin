@@ -6,15 +6,16 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
+import com.intellij.pom.Navigatable
 
 class CommonEasyItNode<L>(
     project: Project,
     val value: TreeNode<L>,
     layerId: LayerId,
-//    val navigatable: Navigatable?,
+    val navigatable: Navigatable?,
 ) : EasyItNode<TreeNode<L>>(project, value, layerId) {
     override fun update(presentation: PresentationData) {
-        presentation.setIcon(AllIcons.Nodes.Folder)
+        presentation.setIcon(AllIcons.Nodes.BookmarkGroup)
         presentation.presentableText = value.value.toString()
     }
 
@@ -26,16 +27,16 @@ class CommonEasyItNode<L>(
         return nodes
     }
 
-//    override fun canNavigate(): Boolean {
-//        return navigatable != null
-//    }
-//
-//    override fun canNavigateToSource(): Boolean {
-//        return navigatable?.canNavigate() ?: false
-//    }
-//
-//    override fun navigate(requestFocus: Boolean) {
-//        navigatable?.navigate(requestFocus)
-//    }
+    override fun canNavigate(): Boolean {
+        return navigatable != null
+    }
+
+    override fun canNavigateToSource(): Boolean {
+        return navigatable?.canNavigate() ?: false
+    }
+
+    override fun navigate(requestFocus: Boolean) {
+        navigatable?.navigate(requestFocus)
+    }
 
 }

@@ -14,12 +14,11 @@ class MarkdownTreeNodeFactory {
     companion object {
         fun buildHeader(header: MarkdownHeader, level: Int, id: LayerId): Header {
             val headerText = MarkdownElementUtils.getHeaderText(header)
-            return Header(headerText, level, id)
+            return Header(headerText, level, id, header)
         }
 
         fun buildListItem(listItem: MarkdownListItem, level: Int, id: LayerId): ListItem {
             val text = "ListItem ${id.listId[id.listId.size - 1]}"
-
             return ListItem(text, level, id)
         }
 

@@ -2,10 +2,10 @@ package com.github.orezzero.easyitplugin.ui.project.view
 
 import com.github.orezzero.easyitplugin.index.file.entry.IndexEntry
 import com.github.orezzero.easyitplugin.index.file.entry.LayerId
-import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
+import org.intellij.plugins.markdown.MarkdownIcons
 
 class EasyItLinkNode(project: Project, val linkLocation: IndexEntry, val codeLocation: IndexEntry, layerId: LayerId) :
     EasyItNode<IndexEntry>(project, linkLocation, layerId) {
@@ -17,7 +17,7 @@ class EasyItLinkNode(project: Project, val linkLocation: IndexEntry, val codeLoc
     }
 
     override fun update(presentation: PresentationData) {
-        presentation.setIcon(AllIcons.Nodes.Method)
+        presentation.setIcon(MarkdownIcons.EditorActions.Link)
         presentation.presentableText = linkLocation.name
     }
 
