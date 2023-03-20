@@ -1,4 +1,4 @@
-package com.github.orezzero.easyitplugin.action.test
+package com.github.orezzero.easyitplugin.action
 
 
 import com.intellij.ide.actions.SplitAction
@@ -9,7 +9,7 @@ import com.intellij.openapi.fileEditor.impl.EditorWindow.Companion.DATA_KEY
 import com.intellij.openapi.fileEditor.impl.MoveEditorToOppositeTabGroupAction
 import javax.swing.SwingConstants
 
-class TestAction : SplitAction(SwingConstants.VERTICAL, true) {
+class MoveOrSplitAction : SplitAction(SwingConstants.VERTICAL, true) {
 
     val moveAction: MoveEditorToOppositeTabGroupAction = MoveEditorToOppositeTabGroupAction()
     override fun actionPerformed(event: AnActionEvent) {

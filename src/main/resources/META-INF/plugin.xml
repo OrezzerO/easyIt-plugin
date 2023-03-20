@@ -45,6 +45,11 @@
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <keyboard-shortcut first-keystroke="meta control Z" keymap="$default"/>
         </action>
+        <action class="com.github.orezzero.easyitplugin.action.MoveOrSplitAction" id="MoveOrSplitRight"
+                text="EasyIt Remove Link">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut first-keystroke="meta control T" keymap="$default"/>
+        </action>
         <action class="com.github.orezzero.easyitplugin.action.test.TestAction" id="TestAction" text="TestAction">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
