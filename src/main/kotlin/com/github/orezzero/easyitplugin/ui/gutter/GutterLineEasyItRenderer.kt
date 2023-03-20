@@ -70,7 +70,7 @@ data class GutterLineEasyItRenderer(
 
 
     override fun getPopupMenuActions(): ActionGroup {
-        return GutterDynamicActionGroup(wrapper)
+        return GutterDynamicActionGroup(wrapper,project)
     }
 
 

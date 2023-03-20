@@ -40,6 +40,7 @@ class IndexManager(val project: Project) {
      */
     private val store: MutableMap<VirtualFile, Map<IndexEntry, IndexEntry>> = mutableMapOf()
     private val treeStore: MutableMap<VirtualFile, TreeNode<VirtualFile>> = mutableMapOf()
+    private val cacheStore: MutableMap<VirtualFile, Map<IndexEntry, TreeNode<*>>> = mutableMapOf()
 
     /**
      * Index md file and new file references in it. Indexed file reference will not be indexed.
@@ -69,6 +70,7 @@ class IndexManager(val project: Project) {
                 psiFile.accept(visitor)
                 store[mdFile] = visitor.result.toMap()
                 treeStore[mdFile] = visitor.root
+                cacheStore[mdFile] = visitor.cache
                 indexChangeFiles.add(mdFile)
 
                 for (mdReference in visitor.mdReferences) {
@@ -81,6 +83,11 @@ class IndexManager(val project: Project) {
         for (indexChangeFile in indexChangeFiles) {
             IndexListenerDispatcher.getInstance(project).indexChanged(indexChangeFile)
         }
+    }
+
+    fun getCacheData(indexEntry: IndexEntry): TreeNode<*>? {
+        var virtualFiles = FileUtils.findFileByRelativePath(project, indexEntry.location)
+        return cacheStore[virtualFiles]?.get(indexEntry)
     }
 
 

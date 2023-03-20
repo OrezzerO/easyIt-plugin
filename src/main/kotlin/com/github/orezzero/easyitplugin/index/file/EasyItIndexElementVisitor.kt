@@ -22,6 +22,7 @@ class EasyItIndexElementVisitor(
 ) : MarkdownRecursiveElementVisitor() {
 
     val result = mutableMapOf<IndexEntry, IndexEntry>()
+    val cache = mutableMapOf<IndexEntry, TreeNode<*>>()
     val mdReferences = mutableListOf<VirtualFile>()
     val root = TreeNode(mdFile, null);
     private val markdownRelativePath = FileUtils.getRelativePath(project, mdFile)
@@ -64,6 +65,7 @@ class EasyItIndexElementVisitor(
                 val link =
                     MarkdownTreeNodeFactory.buildLink(linkLocation, codeLocation, markdownLayer.getCurrentLayerId())
                 val treeNode = TreeNode(link, parent)
+                cache[linkLocation] = treeNode
                 parent.addChild(treeNode)
             }
         }
