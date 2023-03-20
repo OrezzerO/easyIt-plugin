@@ -1,7 +1,6 @@
 package com.github.orezzero.easyitplugin.md
 
 import com.github.orezzero.easyitplugin.invokeLater
-import com.github.orezzero.easyitplugin.md.MarkdownLanguageUtils.hasMarkdownType
 import com.github.orezzero.easyitplugin.runReadAction
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.actions.OpenFileAction
@@ -171,17 +170,14 @@ internal class MarkdownLinkOpenerImpl : MarkdownLinkOpener {
                 }
                 return true
             }
-            if (!targetFile.hasMarkdownType()) {
-                val checkLine = checkLine(anchor)
-                if (checkLine.first) {
-                    val line = checkLine.second
-                    val descriptor = OpenFileDescriptor(project, targetFile, line, 0)
-                    invokeLater {
-                        descriptor.navigate(true)
-                    }
-                    return true
+            val checkLine = checkLine(anchor)
+            if (checkLine.first) {
+                val line = checkLine.second
+                val descriptor = OpenFileDescriptor(project, targetFile, line, 0)
+                invokeLater {
+                    descriptor.navigate(true)
                 }
-                return false
+                return true
             } else {
                 val point = obtainHeadersPopupPosition(project)
                 if (point == null) {
